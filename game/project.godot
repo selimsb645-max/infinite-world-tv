@@ -1,0 +1,59 @@
+; INFINITE WORLD TV - Godot 4.3 project
+; Phase 02: playable core (character + vehicle + 5 themes + UI), handcrafted levels.
+; Rendering: GL Compatibility so the project runs on software renderers (CI) and weak GPUs.
+
+config_version=5
+
+[application]
+config/name="INFINITE WORLD TV"
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.3", "GL Compatibility")
+config/icon=""
+
+[display]
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
+
+[physics]
+common/physics_ticks_per_second=60
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/defaults/default_clear_color=Color(0.05, 0.06, 0.09, 1)
+
+[input]
+
+move_left={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":65)]
+}
+move_right={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":68)]
+}
+jump={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":32), Object(InputEventKey,"physical_keycode":87)]
+}
+slide={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194326), Object(InputEventKey,"physical_keycode":83)]
+}
+accelerate={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":87), Object(InputEventKey,"physical_keycode":4194320)]
+}
+brake={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":83), Object(InputEventKey,"physical_keycode":4194322)]
+}
+switch_mode={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194306), Object(InputEventKey,"physical_keycode":69)]
+}
+pause={
+"deadzone": 0.5,
+"events": [Object(InputEventKey,"physical_keycode":4194305), Object(InputEventKey,"physical_keycode":80)]
+}

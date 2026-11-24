@@ -1,0 +1,59 @@
+name: Game Tests
+
+# Phase 02: the Godot project must import cleanly and pass its headless suite on a clean
+# runner, not just on the machine it was written on.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "game/**"
+      - ".github/workflows/game-tests.yml"
+  pull_request:
+    paths:
+      - "game/**"
+  workflow_dispatch:
+
+jobs:
+  headless-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch Godot 4.3 (headless-capable Linux build)
+        run: |
+          curl -sSL -o godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip
+          python3 -c "import zipfile; zipfile.ZipFile('godot.zip').extractall('.')"
+          chmod +x Godot_v4.3-stable_linux.x86_64
+          ./Godot_v4.3-stable_linux.x86_64 --headless --version
+
+      - name: Import project
+        working-directory: game
+        run: ../Godot_v4.3-stable_linux.x86_64 --headless --path . --import
+
+      - name: Run headless test suite
+        working-directory: game
+        run: |
+          set -o pipefail
+          ../Godot_v4.3-stable_linux.x86_64 --headless --path . \
+            --script res://tests/test_runner.gd 2>&1 | tee test_output.txt
+          grep -q "ALL PASS" test_output.txt
+
+      - name: Summarise
+        if: always()
+        run: |
+          {
+            echo "### Phase 02 headless tests"
+            echo '```'
+            grep -E "PASS|FAIL|RESULT" game/test_output.txt | tail -45 || echo "no output"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: godot-test-output
+          path: game/test_output.txt
+          retention-days: 7

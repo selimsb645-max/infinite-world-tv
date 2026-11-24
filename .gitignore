@@ -1,20 +1,17 @@
 # Godot
 game/.godot/
-*.import
-export_presets.cfg
+game/.import/
+*.tmp
 
-# render + build output
-frames/
-segments/
-*.mp4
-*.mkv
+# OS / editors
+.DS_Store
+.vscode/
+.idea/
 
-# python
-__pycache__/
-*.pyc
-.venv/
+# Local tooling (downloaded engine binaries live outside the repo)
+tools/
 
-# secrets — must never be committed
-.env
-*.key
-stream_key*
+# Secrets — never commit stream keys or credentials
+*.env
+.env*
+secrets/

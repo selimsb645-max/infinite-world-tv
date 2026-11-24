@@ -36,6 +36,24 @@ const THEMES := {
 		"light_color": Color(0.80, 0.84, 1.0), "light_energy": 0.9,
 		"accent": Color(0.55, 0.35, 1.0), "decor": "stars",
 	},
+	"ocean_world": {
+		"sky_top": Color(0.30, 0.68, 0.86), "sky_horizon": Color(0.78, 0.94, 0.98),
+		"ground": Color(0.20, 0.55, 0.62), "fog": Color(0.70, 0.90, 0.95),
+		"light_color": Color(1.0, 0.98, 0.90), "light_energy": 1.2,
+		"accent": Color(0.12, 0.72, 0.78), "decor": "waves",
+	},
+	"fantasy_islands": {
+		"sky_top": Color(0.48, 0.38, 0.86), "sky_horizon": Color(0.98, 0.82, 0.92),
+		"ground": Color(0.42, 0.74, 0.52), "fog": Color(0.92, 0.84, 0.96),
+		"light_color": Color(1.0, 0.90, 0.96), "light_energy": 1.1,
+		"accent": Color(0.86, 0.42, 0.90), "decor": "crystals",
+	},
+	"futuristic_highway": {
+		"sky_top": Color(0.04, 0.06, 0.14), "sky_horizon": Color(0.16, 0.26, 0.44),
+		"ground": Color(0.14, 0.15, 0.20), "fog": Color(0.10, 0.14, 0.24),
+		"light_color": Color(0.70, 0.86, 1.0), "light_energy": 0.95,
+		"accent": Color(0.30, 0.95, 0.70), "decor": "light_pylons",
+	},
 }
 
 var theme_id: String = "green_valley"
@@ -175,10 +193,27 @@ func _build_decor(t: Dictionary, level: Dictionary) -> void:
 					sp.height = 0.44
 					mesh = sp
 					height = 3.5
+				"waves":
+					var wv := BoxMesh.new()
+					wv.size = Vector3(3.2, 0.35, 1.2)
+					mesh = wv
+					height = 0.4
+				"crystals":
+					var cr := CylinderMesh.new()
+					cr.top_radius = 0.0
+					cr.bottom_radius = 0.5
+					cr.height = 3.0
+					mesh = cr
+					height = 3.0
+				"light_pylons":
+					var py := BoxMesh.new()
+					py.size = Vector3(0.35, 5.0, 0.35)
+					mesh = py
+					height = 5.0
 			node.mesh = mesh
 			var mat := StandardMaterial3D.new()
 			mat.albedo_color = color
-			if kind == "towers":
+			if kind in ["towers", "crystals", "light_pylons"]:
 				mat.emission_enabled = true
 				mat.emission = t["accent"]
 				mat.emission_energy_multiplier = 1.6

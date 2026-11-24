@@ -83,11 +83,43 @@ const LEVELS := [
 	},
 ]
 
+## Phase 03: handcrafted levels stay as the intro, then the generator takes over forever.
+var generator: LevelGenerator
+var endless: bool = false
+var generated_cache: Dictionary = {}
+
+func _ready() -> void:
+	if generator == null:
+		generator = LevelGenerator.new()
+
 func level_count() -> int:
 	return LEVELS.size()
 
 func get_level(index: int) -> Dictionary:
+	if endless and index >= LEVELS.size():
+		return generated_level(index)
 	return LEVELS[clampi(index, 0, LEVELS.size() - 1)]
+
+## Generate (and cache) the endless level for this index. Deterministic per index.
+func generated_level(index: int) -> Dictionary:
+	if generator == null:
+		generator = LevelGenerator.new()
+	if not generated_cache.has(index):
+		# keep difficulty in step with how far the player has come
+		generator.difficulty.set_difficulty(
+			clampf(GenerationConfig.DIFFICULTY_MIN + GenerationConfig.DIFFICULTY_PER_LEVEL * float(index),
+				GenerationConfig.DIFFICULTY_MIN, GenerationConfig.DIFFICULTY_MAX))
+		generated_cache[index] = generator.generate(index)
+		# bounded cache: an endless session must not grow without limit
+		if generated_cache.size() > 12:
+			var oldest: Variant = generated_cache.keys()[0]
+			generated_cache.erase(oldest)
+	return generated_cache[index]
+
+func generation_stats() -> Dictionary:
+	if generator == null:
+		return {}
+	return generator.stats()
 
 ## Phase 03 will replace this with generated levels; the contract stays identical.
 func validate(level: Dictionary) -> bool:

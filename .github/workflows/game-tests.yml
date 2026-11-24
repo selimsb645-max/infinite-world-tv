@@ -1,7 +1,7 @@
 name: Game Tests
 
-# Phase 02: the Godot project must import cleanly and pass its headless suite on a clean
-# runner, not just on the machine it was written on.
+# Phase 02 + 03: the Godot project must import cleanly and pass both headless suites on a
+# clean runner, not just on the machine it was written on.
 
 on:
   push:
@@ -33,7 +33,7 @@ jobs:
         working-directory: game
         run: ../Godot_v4.3-stable_linux.x86_64 --headless --path . --import
 
-      - name: Run headless test suite
+      - name: Phase 02 gameplay suite
         working-directory: game
         run: |
           set -o pipefail
@@ -41,13 +41,25 @@ jobs:
             --script res://tests/test_runner.gd 2>&1 | tee test_output.txt
           grep -q "ALL PASS" test_output.txt
 
+      - name: Phase 03 generation suite (1000 levels)
+        working-directory: game
+        run: |
+          set -o pipefail
+          ../Godot_v4.3-stable_linux.x86_64 --headless --path . \
+            --script res://tests/test_generation.gd 2>&1 | tee generation_output.txt
+          grep -q "ALL PASS" generation_output.txt
+
       - name: Summarise
         if: always()
         run: |
           {
-            echo "### Phase 02 headless tests"
+            echo "### Phase 02 gameplay suite"
             echo '```'
-            grep -E "PASS|FAIL|RESULT" game/test_output.txt | tail -45 || echo "no output"
+            grep -E "FAIL|RESULT" game/test_output.txt | tail -10 || echo "no output"
+            echo '```'
+            echo "### Phase 03 generation suite"
+            echo '```'
+            grep -E "PASS|FAIL|RESULT|rejections" game/generation_output.txt | tail -45 || echo "no output"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -55,5 +67,7 @@ jobs:
         if: always()
         with:
           name: godot-test-output
-          path: game/test_output.txt
+          path: |
+            game/test_output.txt
+            game/generation_output.txt
           retention-days: 7

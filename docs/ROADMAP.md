@@ -70,3 +70,12 @@ Acceptance:
 - Real-time in-game physics streaming.
 - Multi-stream to Twitch/TikTok.
 - Paid APIs of any kind.
+
+## Phase 03 status (2026-11-24)
+
+Done: 12 generation modules, endless mode wired into LevelManager/GameManager, 3 new worlds
+added to the renderer (8 total), 38 generation checks + 37 Phase 02 regression checks passing.
+Details in `docs/PHASE03_GENERATION.md`.
+
+Not done on purpose: per-segment geometry (moving platforms, tunnels, bridges are data only
+until Phase 04 draws them).

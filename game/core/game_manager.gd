@@ -47,7 +47,10 @@ func setup(p_world: Node3D, p_levels: Node, p_input: Node, p_collision: Node, p_
 	add_child(_actor_root)
 
 func start_level(index: int) -> void:
-	level_index = clampi(index, 0, level_manager.level_count() - 1)
+	if not level_manager.endless:
+		level_index = clampi(index, 0, level_manager.level_count() - 1)
+	else:
+		level_index = maxi(0, index)
 	var level: Dictionary = level_manager.get_level(level_index)
 
 	collision_manager.build(level, get_parent())
@@ -123,10 +126,17 @@ func restart() -> void:
 	start_level(level_index)
 
 func next_level() -> void:
+	if level_manager.endless:
+		start_level(level_index + 1)          # infinite: never wraps, never runs out
+		return
 	if level_index + 1 < level_manager.level_count():
 		start_level(level_index + 1)
 	else:
 		start_level(0)
+
+## Switch the session into endless procedural mode (Phase 03).
+func set_endless(enabled: bool) -> void:
+	level_manager.endless = enabled
 
 func complete_level() -> void:
 	if state != State.PLAYING:

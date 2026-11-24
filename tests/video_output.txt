@@ -1,0 +1,92 @@
+VIDEO_LOGIC_START
+PASS: config_1080p_dims
+PASS: config_1080p_valid
+PASS: config_720p_dims
+PASS: config_fallback_720p30
+PASS: config_fallback_keeps_output
+PASS: config_invalid_detected
+PASS: config_summary_mentions_res
+PASS: ffmpeg_available
+PASS: encode_args_h264
+PASS: encode_args_aac
+PASS: encode_args_yuv420p
+PASS: encode_args_bitrate
+PASS: encode_args_duration
+PASS: streaming_blocked_by_default
+PASS: streaming_blocked_without_enable
+PASS: streaming_allowed_when_enabled
+PASS: rtmp_args_flv_tail
+PASS: ffmpeg_testsrc_encode
+PASS: validate_generated_clip — issues=[]
+PASS: validate_detects_missing_audio
+PASS: validate_missing_file
+PASS: mix_has_music
+PASS: mix_has_world_ambience
+PASS: mix_has_event
+PASS: mix_skips_missing
+PASS: mix_not_silent
+PASS: mix_music_gain_from_config
+PASS: mix_render_ok
+PASS: mix_output_is_audio
+PASS: mix_duration_matches_segment — dur=2.00
+PASS: mix_silent_render_ok
+PASS: segment_name_format — iwtv_20261124_090503_seg007
+PASS: partial_path_suffix
+PASS: finalize_missing_refused
+PASS: finalize_empty_refused
+PASS: finalize_promotes
+PASS: list_segments_finds_final
+PASS: interrupted_found
+PASS: interrupted_garbage_discarded
+PASS: interrupted_valid_recovered
+PASS: storage_usage_counts
+PASS: storage_count_cap_deletes_oldest
+PASS: storage_size_cap_enforced — mb=0.095
+PASS: storage_retention_spares_protected
+PASS: health_good_is_healthy
+PASS: health_detects_missing_frames
+PASS: health_detects_low_fps
+PASS: health_detects_encode_failure
+PASS: health_detects_audio_loss
+PASS: health_detects_sync_drift
+PASS: health_detects_storage
+PASS: health_bad_not_healthy
+PASS: recovery_action_encode
+PASS: recovery_action_invalid
+PASS: recovery_action_audio
+PASS: recovery_action_storage
+PASS: recovery_action_capture
+PASS: recovery_bounded_gives_up
+PASS: recovery_exhausted_flag
+PASS: recovery_other_issue_unaffected
+PASS: recovery_reset_restores
+PASS: overlay_state_roundtrip
+PASS: overlay_branding_on
+PASS: overlay_branding_off
+PASS: camera_distance_scale_applies — base=9.66 scaled=14.50
+PASS: camera_distance_scale_clamped
+PASS: camera_ctrl_unbound_safe
+PASS: camera_ctrl_null_game_safe
+PASS: capture_begin_state
+PASS: capture_end_state
+PASS: capture_frames_dir_pattern
+VIDEO_LOGIC_DONE failures=0
+VIDEO_CAPTURE_START
+PASS: renderer_created
+PASS: overlay_visible_in_frame
+PASS: overlay_state_live — world=Space World
+MEASURED run_a: frames=47 capture_fps=4.77 encode_fps=25.75 encode_sec=1.82 game_fps=5.2 sync=0.000 recoveries=["MISSING_FRAMES:restart_capture", "LOW_CAPTURE_FPS:restart_capture", "MISSING_FRAMES:restart_capture", "LOW_CAPTURE_FPS:restart_capture", "MISSING_FRAMES:restart_capture", "LOW_CAPTURE_FPS:restart_capture"]
+PASS: run_a_valid_segment — issues=["MISSING_FRAMES", "LOW_CAPTURE_FPS"]
+PASS: run_a_frames_captured — frames=47
+PASS: run_a_file_exists — /home/hatch/workspace/infinite-world-tv/game/../recordings/run_a/iwtv_20261124_152404_seg001.mp4
+PASS: run_a_probe_h264_aac_720p — issues=[]
+PASS: run_a_duration_sane — dur=3.13
+PASS: run_a_av_sync — sync=0.000
+MEASURED run_b: frames=22 capture_fps=2.84 encode_sec=1.92 fallback=false
+PASS: run_b_1080p_output — issues=[]
+PASS: run_c_multiple_segments — segments=21
+PASS: run_c_segments_all_valid
+MEASURED run_c: segments=21 total_size_mb=4.87
+PASS: stop_without_recording_safe
+VIDEO_CAPTURE_DONE failures=0
+VIDEO_DONE failures=0

@@ -39,6 +39,20 @@ and activates one → `CameraController` follows the active controller →
 zone/collectible signals flow back through `WorldManager` →
 `GameManager` (score, level completion) → `UIManager` reflects state.
 
+## Phase 06 modules (video production, `game/scripts/`)
+
+Full design in `docs/PHASE06.md`. Opt-in via
+`GameManager.setup_broadcast(cfg)` → `VideoRenderer` orchestrates:
+`GameCaptureManager` (viewport frames) → `AudioMixer` (Phase 05 WAV
+layers) → `FFmpegManager` (H.264/AAC encode + ffprobe validation) →
+`VideoSegmentManager` (partial → finalize) → `StorageManager`
+(caps/retention), with `CaptureHealthMonitor` verdicts driving the
+bounded `VideoRecoveryManager`. `CameraCaptureController` adds
+broadcast framing over the Phase 02 rig (via its additive
+`distance_scale`), `BroadcastOverlayManager` draws the overlay
+graphics, and `EncodingConfig` holds every knob including the
+disabled-by-default RTMP settings.
+
 ## Design constraints honoured
 
 - Lightweight low-poly primitives only — the future runtime target is a

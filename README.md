@@ -38,10 +38,24 @@ built in code; there are no external or paid assets.
   registry + validation. Asset suite 237/237 passing (see
   `docs/PHASE05.md`, `tests/TESTING_REPORT_PHASE05.md`). All
   assets original — see `docs/ASSET_LICENSE.md`.
-- **Not yet built (later phases, need owner approval):** FFmpeg
-  capture, YouTube Live streaming, admin dashboard, GitHub Actions
-  session runtime (~6 h stream sessions with 30–60 min breaks —
-  not true 24/7).
+- **Phase 06 — Automated Video Production & Rendering Engine:**
+  built and tested locally. Opt-in broadcast pipeline
+  (`GameManager.setup_broadcast(cfg)`): viewport capture at
+  configurable resolution/fps (1080p target, 720p fallback),
+  FFmpeg H.264/AAC encoding to MP4, audio mixing from the Phase 05
+  WAV library (music + world ambience + SFX events), broadcast
+  overlays (world/level/score/mode/progress), timestamped recording
+  segments with safe finalization, bounded storage with retention,
+  health monitoring and bounded failure recovery. Video suite
+  84/84 passing, including real encoded MP4s validated by ffprobe
+  (see `docs/PHASE06.md`, `tests/TESTING_REPORT_PHASE06.md`).
+  Measured honestly: this no-GPU VM renders ≈5 fps, so real-time
+  high-fps capture is a hardware question, not a pipeline one.
+- **Not yet built (later phases, need owner approval):** YouTube
+  Live streaming (Phase 06 built and tested the RTMP command and
+  its enable-gate only — no stream was started), admin dashboard,
+  GitHub Actions session runtime (~6 h stream sessions with
+  30–60 min breaks — not true 24/7).
 
 ## Run it
 

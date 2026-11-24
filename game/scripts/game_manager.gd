@@ -68,6 +68,21 @@ func autopilot_request_new_level() -> void:
 	else:
 		_load_level(level_manager.next_index(), _selected_theme)
 
+## Phase 06: automated video production. Opt-in like
+## start_autonomous(): creates the VideoRenderer (capture, encode,
+## overlay, segments, recovery) without changing normal play.
+## Recording starts only when the renderer's start_recording() /
+## start_continuous() is called.
+var broadcast: VideoRenderer
+
+func setup_broadcast(cfg: EncodingConfig = null) -> VideoRenderer:
+	if broadcast == null:
+		broadcast = VideoRenderer.new()
+		broadcast.name = "VideoRenderer"
+		add_child(broadcast)
+		broadcast.setup(self, cfg)
+	return broadcast
+
 func _load_generated(result: Dictionary) -> void:
 	_current_generated = result
 	var level: Dictionary = result["level"]
@@ -197,6 +212,8 @@ func switch_mode() -> void:
 		character.reset_to(vehicle.global_position + Vector3(1.5, 0.1, 0))
 		_set_mode("character")
 	audio_manager.play_switch()
+	if broadcast != null:
+		broadcast.note_sfx("transition")
 	ui.show_hint("")
 
 func active_controller() -> CharacterBody3D:
@@ -252,6 +269,12 @@ func _process(_delta: float) -> void:
 		var ctrl := active_controller()
 		if ctrl != null:
 			ui.set_speed(float(ctrl.call("current_speed")))
+			if broadcast != null:
+				var level: Dictionary = _current_generated.get("level", {}) if endless_active \
+					else level_manager.current_level()
+				var length := float(level.get("length", 0.0))
+				if length > 0.0:
+					broadcast.set_progress(clampf(-ctrl.global_position.z / length, 0.0, 1.0))
 
 func add_score(points: int) -> void:
 	score += points
@@ -260,11 +283,15 @@ func add_score(points: int) -> void:
 func _on_collectible_picked(_area: Area3D) -> void:
 	add_score(10)
 	audio_manager.play_collect()
+	if broadcast != null:
+		broadcast.note_sfx("collect")
 
 func _on_finish_reached() -> void:
 	if state != State.PLAYING:
 		return
 	add_score(100)
+	if broadcast != null:
+		broadcast.note_sfx("celebrate")
 	if endless_active and transition_manager != null:
 		_load_generated(transition_manager.advance())
 	else:
@@ -284,3 +311,8 @@ func _update_hud() -> void:
 		else level_manager.current_level()
 	ui.set_level("%s · %s" % [level.get("name", "Level"), environment_manager.current_theme])
 	ui.set_mode("Vehicle" if mode == "vehicle" else "Character")
+	if broadcast != null:
+		broadcast.update_overlay(score,
+			"Vehicle" if mode == "vehicle" else "Character",
+			"%s · %s" % [level.get("name", "Level"), environment_manager.current_theme],
+			environment_manager.current_theme)

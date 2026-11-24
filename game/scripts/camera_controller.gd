@@ -8,6 +8,15 @@ extends Node3D
 var target: Node3D
 var mode: String = "character"
 
+## Phase 06: broadcast framing multiplier on the follow offset
+## (1.0 = the original Phase 02 framing, unchanged). The
+## CameraCaptureController eases this with speed; nothing else in
+## the game sets it.
+var distance_scale: float = 1.0
+
+func set_distance_scale(value: float) -> void:
+	distance_scale = clampf(value, 0.75, 1.6)
+
 var _camera: Camera3D
 var _offsets := {
 	"character": Vector3(0, 4.6, 8.5),
@@ -32,7 +41,7 @@ func set_target(new_target: Node3D, new_mode: String) -> void:
 
 func snap_to_target() -> void:
 	if target != null:
-		global_position = target.global_position + _offsets.get(mode, _offsets["character"])
+		global_position = target.global_position + _offsets.get(mode, _offsets["character"]) * distance_scale
 
 func camera() -> Camera3D:
 	return _camera
@@ -40,7 +49,7 @@ func camera() -> Camera3D:
 func _process(delta: float) -> void:
 	if target == null:
 		return
-	var offset: Vector3 = _offsets.get(mode, _offsets["character"])
+	var offset: Vector3 = _offsets.get(mode, _offsets["character"]) * distance_scale
 	var desired: Vector3 = target.global_position + offset
 	var weight := 1.0 - exp(-5.0 * delta)
 	global_position = global_position.lerp(desired, weight)

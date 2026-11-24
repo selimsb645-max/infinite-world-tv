@@ -59,3 +59,37 @@ Note: headless runs use
 Godot's dummy rendering driver, which prints harmless
 `mesh_get_surface_count / Parameter "m" is null` engine warnings; they
 do not occur in a normal (windowed) run and are not game errors.
+
+## Automated video production (Phase 06)
+
+Recording is opt-in from code, mirroring autonomous play:
+
+```gdscript
+var cfg := EncodingConfig.preset_720p(30)   # or preset_1080p(30)
+cfg.output_dir = "recordings"               # segment storage (capped)
+var renderer = game.setup_broadcast(cfg)
+renderer.start_continuous()                 # or start_recording() once
+# ... later:
+renderer.stop_continuous()
+```
+
+Each segment is encoded to MP4 (H.264 + AAC) with the Phase 05
+audio mixed in, validated by ffprobe, and stored under
+`cfg.output_dir` with the storage caps enforced. Verify:
+
+```bash
+# Logic suite (headless, 71 checks)
+godot --headless --path game res://tests/VideoTest.tscn
+
+# Capture suite — needs REAL pixels, so Xvfb instead of --headless
+xvfb-run -a godot --path game res://tests/VideoCaptureTest.tscn
+
+# Both, merged into tests/video_output.txt
+GODOT=godot bash tests/run_video_tests.sh
+# Expected: VIDEO_DONE failures=0 — see docs/PHASE06.md for the
+# measured rates on this machine and the honest hardware limits.
+```
+
+YouTube Live / RTMP streaming is a later phase: Phase 06 only
+builds and tests the RTMP command behind `EncodingConfig`'s
+`rtmp_enabled` gate (default off).

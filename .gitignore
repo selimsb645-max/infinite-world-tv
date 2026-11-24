@@ -15,3 +15,6 @@ tools/
 *.env
 .env*
 secrets/
+
+# Phase 06 recordings — local evidence only, never committed
+recordings/

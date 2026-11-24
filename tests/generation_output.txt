@@ -34,7 +34,7 @@ PASS: history_eviction_drops_old_fingerprints
 PASS: queue_budget_respected — processed=2 pending=3
 PASS: queue_drains
 PASS: transition_keeps_only_two_levels — level=31 retained=2
-GEN_STATS levels=1000 distinct_fingerprints=1000 worlds=8 mixed=1000 char_segments=4228 vehicle_segments=4213 fallbacks=0 attempts=1003 validation_rejections=3 dup_rejected=0 sim_rejected=0 elapsed_ms=1634
+GEN_STATS levels=1000 distinct_fingerprints=1000 worlds=8 mixed=1000 char_segments=4228 vehicle_segments=4213 fallbacks=0 attempts=1003 validation_rejections=3 dup_rejected=0 sim_rejected=0 elapsed_ms=1774
 PASS: thousand_levels_all_valid
 PASS: thousand_levels_no_exact_duplicates — distinct=1000
 PASS: thousand_levels_all_worlds_used — worlds=8

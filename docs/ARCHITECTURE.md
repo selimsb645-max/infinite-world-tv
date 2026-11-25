@@ -53,6 +53,22 @@ broadcast framing over the Phase 02 rig (via its additive
 graphics, and `EncodingConfig` holds every knob including the
 disabled-by-default RTMP settings.
 
+## Phase 07 modules (live streaming, `game/scripts/`)
+
+Full design in `docs/PHASE07.md`. `StreamManager` (Node) owns one
+ffmpeg RTMP(S) process fed from the Phase 06 output interface
+(frame sequence + mixed WAV, or a file): prepare and broadcast are
+separate calls, recovery is a bounded reconnect budget with
+exponential backoff, and a pid-checked lock file prevents duplicate
+encoders. `StreamConfig` carries the settings on top of
+`EncodingConfig` and is the only place the stream key exists —
+loaded from the environment / gitignored `.env`, used solely in
+the process arguments, scrubbed from every string by `redact()`.
+`StreamHealthMonitor` turns ffmpeg `-progress` reports into the
+dashboard snapshot; `StreamAdmin` is the token-authorized control
+surface (public start additionally needs an explicit confirmation
+flag, default off).
+
 ## Design constraints honoured
 
 - Lightweight low-poly primitives only — the future runtime target is a

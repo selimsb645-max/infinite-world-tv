@@ -93,3 +93,39 @@ GODOT=godot bash tests/run_video_tests.sh
 YouTube Live / RTMP streaming is a later phase: Phase 06 only
 builds and tests the RTMP command behind `EncodingConfig`'s
 `rtmp_enabled` gate (default off).
+
+## Live streaming (Phase 07)
+
+The streaming engine pushes the Phase 06 output to an RTMP(S)
+ingest through a single monitored ffmpeg process. Credentials
+come only from the environment (or a gitignored `.env` — copy
+`.env.example`); they are never written to logs or status output.
+
+```bash
+export IWT_YOUTUBE_STREAM_KEY=...   # your key, from YouTube Studio
+export IWT_ADMIN_TOKEN=...          # authorizes admin start/stop
+```
+
+```gdscript
+var scfg := StreamConfig.new(EncodingConfig.preset_720p(30))
+scfg.apply_environment()            # or load_env_file(".env")
+var manager := StreamManager.new()
+add_child(manager)
+var admin := StreamAdmin.new(manager)
+admin.prepare_stream({"frames_pattern": "recordings/frames/frame_%06d.png",
+                      "audio_path": "recordings/mix.wav"}, scfg)
+admin.start_stream(IWT_ADMIN_TOKEN) # public needs confirm flag too
+admin.check_health()                # secret-free status snapshot
+admin.stop_stream(IWT_ADMIN_TOKEN)
+```
+
+Verify (no YouTube contact — a local RTMP listener on 127.0.0.1
+and a fake key):
+
+```bash
+GODOT=godot bash tests/run_stream_tests.sh
+# Expected: STREAM_DONE failures=0 (51 checks) — see docs/PHASE07.md
+# for the architecture, the secure setup, YouTube's current
+# eligibility rules (operator must be 16+) and the honest
+# free-infrastructure feasibility report.
+```

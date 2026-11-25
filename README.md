@@ -51,11 +51,25 @@ built in code; there are no external or paid assets.
   (see `docs/PHASE06.md`, `tests/TESTING_REPORT_PHASE06.md`).
   Measured honestly: this no-GPU VM renders ≈5 fps, so real-time
   high-fps capture is a hardware question, not a pipeline one.
-- **Not yet built (later phases, need owner approval):** YouTube
-  Live streaming (Phase 06 built and tested the RTMP command and
-  its enable-gate only — no stream was started), admin dashboard,
-  GitHub Actions session runtime (~6 h stream sessions with
-  30–60 min breaks — not true 24/7).
+- **Phase 07 — YouTube Live Streaming & Broadcast Infrastructure:**
+  built and tested locally. Streaming engine on top of the Phase 06
+  output: `StreamConfig` (env-only stream key, redaction, YouTube
+  encoder defaults), `StreamManager` (single ffmpeg RTMP(S)
+  process, bounded reconnect with exponential backoff, duplicate
+  prevention, graceful shutdown), `StreamHealthMonitor` (ffmpeg
+  `-progress` monitoring), `StreamAdmin` (token-authorized
+  controls; a public broadcast needs a separate confirmation flag).
+  Stream suite 51/51 passing, including real RTMP streaming
+  verified against a **local** listener — **no YouTube stream was
+  started and no real stream key exists** (see `docs/PHASE07.md`,
+  `tests/TESTING_REPORT_PHASE07.md`). The docs include an honest
+  free-infrastructure feasibility report: no free tier guarantees
+  24/7; the realistic free mode is ~6 h GitHub Actions sessions
+  with breaks, started manually.
+- **Not yet built (later phases, need owner approval):** admin
+  dashboard UI, the GitHub Actions session runtime itself, and the
+  first real (private) YouTube test stream, which needs the
+  owner's own channel and stream key.
 
 ## Run it
 

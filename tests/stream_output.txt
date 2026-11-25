@@ -1,0 +1,54 @@
+STREAM_START
+PASS: inputs_frames_generated
+PASS: inputs_audio_generated
+PASS: cfg_default_keyframe_is_2
+PASS: cfg_default_ingest_rtmps
+PASS: cfg_valid_with_key
+PASS: cfg_missing_key_flagged — ["missing_credentials:IWT_YOUTUBE_STREAM_KEY"]
+PASS: cfg_keyframe_over_4_invalid
+PASS: cfg_bad_ingest_invalid
+PASS: redact_masks_key
+PASS: summary_hides_key
+PASS: safe_url_hides_key
+PASS: full_url_carries_key_for_process
+PASS: backoff_sequence_doubles
+PASS: backoff_capped
+PASS: env_var_key_loaded
+PASS: env_file_loaded
+PASS: env_file_missing_is_safe
+PASS: progress_parse_last_block
+PASS: health_dead_process_flagged
+PASS: health_stall_flagged
+PASS: snapshot_fields_present
+PASS: admin_prepare_ok
+PASS: prepare_spawns_nothing
+PASS: prepare_missing_audio_rejected
+PASS: start_without_credentials_refused
+PASS: admin_wrong_token_refused
+PASS: admin_empty_token_refused
+PASS: stream_starts — { "ok": true, "pid": 16510 }
+PASS: stream_data_flows — frames=25
+PASS: duplicate_start_refused
+PASS: monitoring_snapshot_live — fps=25.0
+PASS: quality_change_refused_while_streaming
+PASS: graceful_stop
+PASS: lock_released_on_stop
+PASS: listener_recorded_h264_aac — ["h264", "aac"]
+PASS: public_start_requires_confirmation
+PASS: public_with_confirmation_starts_locally
+PASS: public_local_stream_flows
+PASS: crash_test_stream_flowing
+PASS: crash_detected_and_recovered — state=streaming reconnects=1
+PASS: reconnect_counted
+PASS: recovered_stream_flows — ["h264", "aac"]
+PASS: net_test_stream_flowing
+PASS: network_interruption_detected — interruptions=1 reconnects=1 state=recovering
+PASS: dead_target_start_attempted
+PASS: reconnects_bounded_then_failed — attempts=2
+PASS: attempts_equal_max
+PASS: no_retries_after_giveup
+PASS: recovery_disabled_fails_fast
+PASS: logs_and_status_never_contain_key
+PASS: process_args_carry_key_internally
+STREAM_DONE failures=0
+STREAM_DONE failures=0

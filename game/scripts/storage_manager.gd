@@ -47,6 +47,25 @@ func enforce(dir: String, cfg: EncodingConfig,
 			else:
 				kept.append(seg)
 		list = kept
+	# 1b) Phase 09 — orphaned partials. Interrupted encodes leave
+	# .partial.mp4 files that list_segments() never returns, so the
+	# caps below cannot reclaim them, yet usage() counts them: in
+	# one long session with repeated encode failures they would
+	# grow without bound. Delete only partials older than
+	# cfg.partial_max_age_sec — an encode actually in progress is
+	# far younger than that, and the caller protects the live one
+	# explicitly. (Startup recovery in VideoSegmentManager still
+	# judges fresh partials: promote-or-discard.)
+	var partials_deleted := 0
+	if cfg.partial_max_age_sec > 0.0:
+		for partial in segments.find_interrupted(dir):
+			if partial == protected_path:
+				continue
+			if now - FileAccess.get_modified_time(partial) \
+					> int(cfg.partial_max_age_sec):
+				var before := deleted.size()
+				freed += _delete(partial, deleted)
+				partials_deleted += deleted.size() - before
 	# 2) Size cap, then 3) count cap — oldest first either way.
 	var total := 0
 	for seg_v in list:
@@ -59,7 +78,8 @@ func enforce(dir: String, cfg: EncodingConfig,
 		total -= int(oldest["size"])
 		freed += _delete(str(oldest["path"]), deleted)
 		list.remove_at(0)
-	return {"deleted": deleted, "freed_bytes": freed}
+	return {"deleted": deleted, "freed_bytes": freed,
+		"partials_deleted": partials_deleted}
 
 func _delete(path: String, deleted: Array) -> int:
 	var size := _file_size(path)

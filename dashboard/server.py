@@ -48,6 +48,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from alert_service import AlertService          # noqa: E402
 from log_service import LogService              # noqa: E402
+from logrotate import append_line               # noqa: E402
 from process_control import ProcessControl      # noqa: E402
 from redact import redact, redact_obj           # noqa: E402
 from status_service import StatusService        # noqa: E402
@@ -119,11 +120,10 @@ class Dashboard:
     def log(self, level, message):
         entry = {"ts": time.time(), "level": level, "module": "dashboard",
                  "message": redact(message)}
-        try:
-            with open(self.cfg.dashboard_log_path, "a") as handle:
-                handle.write(json.dumps(entry) + "\n")
-        except OSError:
-            pass
+        # Phase 09 — append through the rotating writer: this file
+        # used to grow without bound on long runs.
+        append_line(self.cfg.dashboard_log_path,
+                    json.dumps(entry) + "\n")
 
     def audit(self, role, action, result):
         entry = {"ts": time.time(), "level": "info", "module": "audit",
@@ -133,11 +133,8 @@ class Dashboard:
                      "error:%s" % result.get("error", "unknown")),
                  "action": action, "actor": role,
                  "ok": bool(result.get("ok"))}
-        try:
-            with open(self.cfg.audit_log_path, "a") as handle:
-                handle.write(json.dumps(redact_obj(entry)) + "\n")
-        except OSError:
-            pass
+        append_line(self.cfg.audit_log_path,
+                    json.dumps(redact_obj(entry)) + "\n")
 
     # -- sessions ------------------------------------------------------------
 

@@ -19,6 +19,7 @@ var output_dir: String = "recordings"
 var max_storage_mb: float = 1024.0
 var max_segments: int = 48
 var retention_sec: float = 0.0  # 0 = keep until a cap forces cleanup
+var partial_max_age_sec: float = 3600.0  # Phase 09: orphaned .partial.mp4 older than this is reclaimed by StorageManager.enforce()
 var branding_enabled: bool = true
 var channel_name: String = "INFINITE WORLD TV"
 var music_db: float = -12.0

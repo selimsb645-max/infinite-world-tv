@@ -33,6 +33,12 @@ var total_generated: int = 0
 var total_attempts: int = 0
 var fallbacks_used: int = 0
 var validation_rejections: int = 0
+## Phase 09 — the fallback template is hand-built to be valid, but
+## nothing used to check that. It is now validated before serving;
+## a failure here means the template itself regressed, so it is
+## counted loudly (the level is still served — availability —
+## and the reliability suite asserts this stays 0).
+var fallback_validation_failures: int = 0
 
 var _queue: Array[Dictionary] = []
 
@@ -76,6 +82,10 @@ func generate(level_number: int, base_seed: int, performance: Dictionary = {}) -
 				"fallback": false}}
 	# All bounded attempts rejected: serve the fallback template.
 	var fallback: Dictionary = _build_fallback(level_number, base_seed, difficulty)
+	var fb_check: Dictionary = validator.validate(fallback, difficulty)
+	var fb_valid := bool(fb_check["valid"])
+	if not fb_valid:
+		fallback_validation_failures += 1
 	var fb_eval: Dictionary = anti_repetition.evaluate(fallback)
 	anti_repetition.commit(fallback, fb_eval)
 	fallbacks_used += 1
@@ -86,7 +96,7 @@ func generate(level_number: int, base_seed: int, performance: Dictionary = {}) -
 		"attempts": config.max_retries + 1,
 		"max_similarity": float(last_meta.get("max_similarity", 1.0)),
 		"difficulty_index": float(difficulty["index"]),
-		"fallback": true}}
+		"fallback": true, "fallback_valid": fb_valid}}
 
 ## --- Generation queue (chunked / budgeted) ------------------------------
 func enqueue(level_number: int, base_seed: int) -> void:

@@ -1,0 +1,57 @@
+RELIABILITY_LOGIC_START
+PASS: storage_old_partial_reclaimed — partials_deleted=1
+PASS: storage_fresh_partial_kept
+PASS: storage_protected_partial_kept
+PASS: storage_finalized_segment_kept_under_caps
+PASS: storage_headroom_reports_full
+PASS: recovery_first_attempts_allowed
+PASS: recovery_budget_exhausted_in_window
+PASS: recovery_budgets_are_per_issue
+PASS: recovery_budget_replenishes_after_window
+PASS: recovery_reset_still_works
+PASS: stream_log_memory_capped — entries=1000
+PASS: stream_log_file_complete — lines=1200
+PASS: stream_log_file_size_bounded — lines=1000
+PASS: stream_log_last_line_valid_json
+PASS: stream_start_without_prepare_refused
+PASS: ai_perception_unavailable_is_safe
+PASS: ai_recovery_missing_pos_degrades
+PASS: ai_recovery_partial_perception_degrades
+PASS: ai_recovery_normal_path_intact
+MEASURED soak: levels=1000 valid=1000 fallbacks=0 rejections=3 distinct=1000 mem_growth_mb=1.80
+PASS: soak_all_levels_valid — valid=1000/1000
+PASS: soak_fallback_template_valid — fallback_validation_failures=0
+PASS: soak_levels_distinct — distinct=1000/1000
+PASS: soak_memory_bounded — growth=1.80 MB
+PASS: soak_history_bounded — history=250
+RELIABILITY_LOGIC_DONE failures=0
+RELIABILITY_PY_START
+PASS: logrotate_bounds_total_size — total=11918 files=['grow.jsonl', 'grow.jsonl.1', 'grow.jsonl.2']
+PASS: logrotate_keeps_backups_bounded — files=3
+PASS: logrotate_current_file_intact
+PASS: sup_start_ok — pid=3891
+PASS: sup_duplicate_start_refused
+PASS: sup_detects_killed_unit
+PASS: sup_enters_backoff_not_instant_restart — state=BACKOFF
+PASS: sup_crash_snapshot_preserved
+PASS: sup_backoff_respected
+PASS: sup_restarted_after_backoff — new_pid=3892
+PASS: sup_restart_counted
+PASS: sup_graceful_stop
+PASS: sup_intentional_stop_not_restarted
+PASS: sup_crash_loop_bounded — state=FAILED spawns=4
+PASS: sup_crash_loop_spawn_count_exact — spawns=4 (1 initial + 3 restarts)
+PASS: sup_failed_unit_never_restarts
+PASS: sup_failed_unit_start_refused
+PASS: sup_operator_reset_recovers
+PASS: sup_missing_binary_reported
+PASS: sup_units_independent — good=RUNNING bad=FAILED
+PASS: sup_status_file_written
+PASS: sup_stop_all_clean
+PASS: sup_lock_first_acquires
+PASS: sup_lock_second_refused
+PASS: sup_lock_reacquirable
+PASS: sup_adopts_existing_process
+PASS: sup_adopted_process_stoppable
+RELIABILITY_PY_DONE failures=0
+RELIABILITY_DONE failures=0

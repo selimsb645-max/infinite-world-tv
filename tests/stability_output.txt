@@ -1,0 +1,19 @@
+MEASURED run_start duration_target_sec=600 units={'game': True, 'stream': True, 'dashboard': True}
+MEASURED injected SIGKILL unit=game pid=3988 at_elapsed=240s
+MEASURED recovered unit=game new_pid=7944
+MEASURED injected SIGKILL unit=stream pid=3989 at_elapsed=420s
+MEASURED recovered unit=stream new_pid=8274
+MEASURED run_end actual_duration_sec=600 samples=60
+MEASURED end_states {"game": "RUNNING", "stream": "RUNNING", "dashboard": "RUNNING"}
+MEASURED total_restarts {"game": 1, "stream": 1, "dashboard": 0}
+MEASURED rss unit=dashboard start_mb=1.1 end_mb=14.7 peak_mb=21.6
+MEASURED rss unit=game start_mb=2.9 end_mb=98.8 peak_mb=103.0
+MEASURED rss unit=stream start_mb=1.3 end_mb=87.1 peak_mb=87.2
+MEASURED cpu unit=dashboard avg_pct=0.1 peak_pct=1.3
+MEASURED cpu unit=game avg_pct=2.2 peak_pct=8.2
+MEASURED cpu unit=stream avg_pct=1.3 peak_pct=4.2
+MEASURED game_fps median=145 min=74 max=145 samples=59
+MEASURED dashboard_http_failed_samples=1 of 60
+MEASURED injection unit=game detected=True recovered=True
+MEASURED injection unit=stream detected=True recovered=True
+STABILITY_DONE failures=0

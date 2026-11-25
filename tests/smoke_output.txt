@@ -367,7 +367,7 @@ ERROR: Parameter "m" is null.
    at: mesh_get_surface_count (servers/rendering/dummy/storage/mesh_storage.h:120)
 ERROR: Parameter "m" is null.
    at: mesh_get_surface_count (servers/rendering/dummy/storage/mesh_storage.h:120)
-PASS: camera_follows_character — dist=9.79
+PASS: camera_follows_character — dist=9.81
 PASS: camera_behind_character
 PASS: five_themes_apply
 PASS: five_themes_distinct_skies — distinct=5

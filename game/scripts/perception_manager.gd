@@ -13,6 +13,34 @@ const LOOKAHEAD := 34.0
 
 func sense(game, level: Dictionary) -> Dictionary:
     var ctrl = game.active_controller()
+    if ctrl == null:
+        # Phase 09 — perception unavailable (mode switch / level
+        # load in progress). Return a well-formed snapshot marked
+        # unavailable instead of dereferencing null and crashing
+        # the controller; callers must check "available".
+        return {
+            "available": false,
+            "mode": str(game.mode),
+            "pos": Vector3.ZERO,
+            "speed": 0.0,
+            "velocity": Vector3.ZERO,
+            "grounded": false,
+            "sliding": false,
+            "rotation_y": 0.0,
+            "obstacles_ahead": [],
+            "gaps_ahead": [],
+            "segment": {},
+            "segment_mode": str(game.mode),
+            "segment_feature": "run",
+            "lane_offset": 0.0,
+            "width": float(level.get("width", 14.0)),
+            "finish_z": 0.0,
+            "distance_to_finish": 0.0,
+            "pad_z": float(level.get("vehicle_pad_z", -30.0)),
+            "nearest_collectible": null,
+            "level_number": int(level.get("level_number", 0)),
+            "world": str(level.get("world", level.get("theme", ""))),
+        }
     var pos: Vector3 = ctrl.global_position
     var mode: String = str(game.mode)
     var obstacles: Array = []
@@ -45,6 +73,7 @@ func sense(game, level: Dictionary) -> Dictionary:
             nearest_collectible = cv
     var length := float(level.get("length", 120.0))
     return {
+        "available": true,
         "mode": mode,
         "pos": pos,
         "speed": float(ctrl.call("current_speed")),

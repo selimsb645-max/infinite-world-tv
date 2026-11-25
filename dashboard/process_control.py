@@ -27,6 +27,8 @@ import threading
 import time
 import uuid
 
+from logrotate import rotate_if_needed
+
 _cmd_locks = {"game": threading.Lock(), "stream": threading.Lock()}
 
 
@@ -85,6 +87,9 @@ class ProcessControl:
         env = dict(os.environ)
         env.update(env_extra)
         log_path = os.path.join(self.cfg.runtime_dir, log_name)
+        # Phase 09 — process logs were append-only forever; rotate
+        # an oversized one before the new process appends to it.
+        rotate_if_needed(log_path)
         log_handle = open(log_path, "ab")
         try:
             proc = subprocess.Popen(

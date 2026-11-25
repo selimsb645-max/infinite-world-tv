@@ -25,6 +25,7 @@ import os
 import threading
 import time
 
+from logrotate import append_line
 from redact import redact_obj
 
 
@@ -39,6 +40,14 @@ class AlertService:
         self._game_was_running = False
         self._thread = None
         self._stopped = threading.Event()
+        # Phase 09 — the monitor's own health is surfaced, not
+        # swallowed: consecutive evaluation errors and the last
+        # error are recorded, and a monitor_degraded alert is
+        # written once when they pile up (and once when they clear).
+        self.last_error = None
+        self.last_ok_ts = None
+        self.consecutive_errors = 0
+        self._degraded_reported = False
 
     def start(self):
         self._thread = threading.Thread(target=self._loop, daemon=True,
@@ -52,15 +61,36 @@ class AlertService:
         while not self._stopped.wait(self.interval):
             try:
                 self.evaluate_once()
-            except Exception:
-                # The monitor must never take the dashboard down.
-                pass
+                self.consecutive_errors = 0
+                self.last_error = None
+                self.last_ok_ts = time.time()
+                if self._degraded_reported:
+                    self._degraded_reported = False
+                    self._append("monitor_degraded", "info",
+                                 "Alert evaluation recovered", "resolved")
+            except Exception as exc:  # noqa: BLE001
+                # The monitor must never take the dashboard down —
+                # but Phase 09: the failure is recorded and, when
+                # persistent, reported as an alert instead of
+                # vanishing silently.
+                self.consecutive_errors += 1
+                self.last_error = "%s: %s" % (type(exc).__name__, exc)
+                if self.consecutive_errors >= 3 \
+                        and not self._degraded_reported:
+                    self._degraded_reported = True
+                    try:
+                        self._append(
+                            "monitor_degraded", "error",
+                            "Alert evaluation failing repeatedly: %s"
+                            % self.last_error, "active")
+                    except Exception:  # noqa: BLE001
+                        pass
 
     def _append(self, key, severity, message, state):
         entry = {"ts": time.time(), "level": severity, "module": "alerts",
                  "key": key, "state": state, "message": message}
-        with open(self.cfg.alerts_log_path, "a") as handle:
-            handle.write(json.dumps(redact_obj(entry)) + "\n")
+        append_line(self.cfg.alerts_log_path,
+                    json.dumps(redact_obj(entry)) + "\n")
 
     def _set(self, key, severity, message, active):
         was_active = key in self._active

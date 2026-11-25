@@ -36,6 +36,14 @@ const STATE_RECOVERING := "recovering"
 const STATE_STOPPED := "stopped"
 const STATE_FAILED := "failed"
 
+## Phase 09 — the in-memory log and its file are both bounded.
+## A 24/7 process cannot keep every entry forever: the array is
+## capped (oldest dropped; the dashboard reads the file, which is
+## itself rewritten from the capped array once it passes
+## LOG_FILE_MAX_BYTES).
+const LOG_ENTRY_CAP := 1000
+const LOG_FILE_MAX_BYTES := 8388608
+
 var config: StreamConfig
 var health: StreamHealthMonitor
 
@@ -289,11 +297,38 @@ func log_event(level: String, event: String, detail: String = "") -> void:
 		"detail": safe_detail,
 	}
 	_log_entries.append(entry)
-	_flush_log_file()
+	while _log_entries.size() > LOG_ENTRY_CAP:
+		_log_entries.pop_front()
+	_append_log_entry(entry)
 
-func _flush_log_file() -> void:
+## Phase 09 — appends ONE line per event. The original code
+## rewrote the entire file on every event: O(n^2) I/O and an
+## unbounded file in a process meant to run for weeks. Now the
+## file grows by a line at a time until it passes
+## LOG_FILE_MAX_BYTES, then it is rewritten once from the capped
+## in-memory window — so both memory and disk stay bounded.
+func _append_log_entry(entry: Dictionary) -> void:
 	if config == null or config.log_file_path == "":
 		return
+	if FileAccess.file_exists(config.log_file_path):
+		var rf := FileAccess.open(config.log_file_path, FileAccess.READ)
+		if rf != null:
+			var size := rf.get_length()
+			rf.close()
+			if size > LOG_FILE_MAX_BYTES:
+				_rewrite_log_file()
+				return
+		var f := FileAccess.open(config.log_file_path,
+			FileAccess.READ_WRITE)
+		if f == null:
+			return
+		f.seek_end()
+		f.store_line(JSON.stringify(entry))
+		f.close()
+	else:
+		_rewrite_log_file()
+
+func _rewrite_log_file() -> void:
 	var f := FileAccess.open(config.log_file_path, FileAccess.WRITE)
 	if f == null:
 		return

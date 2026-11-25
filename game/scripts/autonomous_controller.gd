@@ -148,6 +148,10 @@ func _physics_process(delta: float) -> void:
         _open_level_tracking()
     # Bounded recovery check (position-only, every physics frame).
     var ctrl = game.active_controller()
+    if ctrl == null:
+        # Phase 09 — no active body during a mode switch / level
+        # transition: skip this tick instead of dereferencing null.
+        return
     var rec := recovery.update(delta,
         {"pos": ctrl.global_position, "mode": str(game.mode)}, true)
     match str(rec["action"]):
@@ -174,6 +178,10 @@ func _physics_process(delta: float) -> void:
         return
     _timer = decision_interval
     var p := perception.sense(game, current_level())
+    if not bool(p.get("available", true)):
+        # Phase 09 — perception unavailable this interval (no
+        # active controller): hold course, decide next interval.
+        return
     var action := planner.plan(p, str(game.mode))
     decisions_made += 1
     if bool(action.get("switch_mode", false)):

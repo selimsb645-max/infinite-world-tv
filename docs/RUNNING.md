@@ -156,3 +156,38 @@ Verify:
 GODOT=godot bash tests/run_dashboard_tests.sh
 # Expected: DASHBOARD_DONE failures=0 (45 checks)
 ```
+
+## Supervised long-run operation (Phase 09)
+
+For anything beyond a manual session, run the stack under the
+process supervisor. It owns the game, stream-service and
+dashboard processes: unexpected exits are restarted with
+exponential backoff (at most 5 restarts per 10 minutes per unit,
+then the unit stays FAILED until an operator reset), each crash
+preserves the unit's log tail under `crashes/` in the runtime
+dir, and all dashboard-layer logs rotate at 5 MB × 3 files.
+
+```bash
+export IWT_GODOT_BIN=/path/to/godot # or `godot` on PATH
+export IWT_ADMIN_TOKEN=<redacted>
+export IWT_YOUTUBE_STREAM_KEY=<redacted>
+python3 dashboard/supervisor.py                 # foreground
+python3 dashboard/supervisor.py --status        # unit states
+```
+
+The supervisor shares pidfiles with the dashboard, so a service
+started from the dashboard UI is adopted and supervised rather
+than double-started. Stop it with SIGTERM/Ctrl-C for a graceful
+shutdown of all units. On a real host, run the supervisor itself
+under systemd (or equivalent) — it is otherwise a single point
+of failure (see `docs/PHASE09.md` §2 #10 and §6 for the honest
+infrastructure limits; no free tier guarantees 24/7 uptime).
+
+Verify:
+
+```bash
+GODOT=godot bash tests/run_reliability_tests.sh
+# Expected: RELIABILITY_DONE failures=0 (51 checks)
+IWT_STABILITY_SEC=600 python3 tests/stability_run.py
+# Expected: STABILITY_DONE failures=0 after a real 600 s run
+```

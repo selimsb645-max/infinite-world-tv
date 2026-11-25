@@ -37,6 +37,10 @@ func reset_for_level() -> void:
 func update(delta: float, p: Dictionary, playing: bool) -> Dictionary:
     if not playing:
         return {"action": "none"}
+    if not p.has("pos"):
+        # Phase 09 — perception data unavailable: degrade to no
+        # action instead of raising an invalid-index error.
+        return {"action": "none"}
     if _reverse_timer > 0.0:
         _reverse_timer -= delta
         return {"action": "reverse"}

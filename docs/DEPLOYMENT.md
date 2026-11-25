@@ -47,13 +47,16 @@ Component responsibilities and persistence needs:
 \* Port is configurable (`IWT_DASHBOARD_PORT`); see
 `docs/RUNNING.md` and `dashboard/server.py` for all variables.
 
-**GitHub Actions is CI/CD only.** It runs the test suites on
-push. It is *not* a streaming server: jobs are time-capped
-(6 h), ephemeral, and have no persistent disk. The realistic
-free pattern (see `docs/PHASE07.md`) is supervised ~6-hour
-sessions with breaks on whatever host is available — started by
-a human, monitored by the dashboard — not a guaranteed 24/7
-broadcast.
+**GitHub Actions is not a streaming server** — jobs are
+time-capped (6 h), ephemeral, and have no persistent disk, so
+it can never be a guaranteed 24/7 broadcast. What it *can* do,
+and what is now prepared (see "GitHub Actions session runtime"
+below), is host **manually dispatched ~6-hour sessions**: the
+owner starts one session per Actions run, the stack streams for
+that session, and the channel is offline between sessions —
+exactly the owner's session-with-breaks plan from
+`docs/PHASE07.md`, and the manual mode the channel plan assumes
+until 50 subscribers.
 
 ## Host requirements (from Phase 10 measurements)
 
@@ -99,6 +102,118 @@ deployment:
   `confirm_public` flag at start time — configuration alone
   can never make a stream public.
 
+## GitHub Actions session runtime (prepared 2026-11-25)
+
+The Actions runtime is **prepared and locally validated, but
+not yet activated** — activation is owner steps (a)–(e) below.
+Nothing streams, and nothing can stream, until the owner has
+done them.
+
+### What was prepared
+
+| File | What it is |
+|---|---|
+| `scripts/stream_session.py` | The session driver. Starts Xvfb, brings up the real supervised stack (Phase 09 `dashboard/supervisor.py` owning game/stream/dashboard; the game unit uses the dashboard's own headful recipe from `process_control.py`, because Phase 06 capture needs real pixels), drives it through the real dashboard API (login → `start_ai` → `rendering_start`, then stream prepare/start in the streaming modes), snapshots status every 15 s, and shuts everything down cleanly at the session cap. Supervision/recovery is the supervisor's own — the driver reimplements none of it. |
+| `scripts/run_stream_session.sh` | Thin launcher (resolves `IWT_GODOT_BIN`/`GODOT`, hands arguments through). |
+| `deployment/github-actions/stream-session.yml` | The workflow, kept here as the canonical copy because workflow files cannot be pushed through the project's GitHub connector. It takes effect only when placed at `.github/workflows/stream-session.yml` (owner step (d)). |
+
+### Safety model (enforced in the workflow AND the runner)
+
+- **Manual trigger only** (`workflow_dispatch`). There is no
+  schedule/cron trigger and nothing re-triggers a run: a
+  session starts only when the owner clicks "Run workflow".
+- **Default mode `prepare_only` cannot stream.** The runner
+  removes `IWT_YOUTUBE_STREAM_KEY` from the environment before
+  any unit starts; the stack comes up, the AI plays, the
+  renderer runs, and the dashboard must report streaming
+  NOT CONFIGURED — that is the expected, verified result.
+- **`private_test`** forces `IWT_STREAM_VISIBILITY=private` in
+  the runner (whatever the secret/variable says) and needs the
+  key secret. It first renders a real game segment (stage A),
+  then restarts the stack with that segment as the stream
+  service's video source and starts the private stream through
+  the real StreamAdmin path (stage B).
+- **`live`** forces visibility `public` and passes
+  `confirm_public=true` to the start command — the project's
+  own gate (`StreamManager` refuses a public start without
+  it). It is refused *before anything starts*, in the
+  workflow's guard step and again in the runner, unless the
+  dispatch's `confirm_public` input is exactly
+  `I_CONFIRM_PUBLIC_STREAM`. There is no bypass path.
+- **One session at a time** (workflow concurrency group;
+  a second dispatch queues, never cancels the running one).
+- **Length caps:** `session_minutes` 5–350 (default 330);
+  job `timeout-minutes` 360 (GitHub's own cap); the runner
+  clamps its duration to 350 min as a second line of defence
+  and always shuts the stack down gracefully.
+- **Secrets** are referenced only via `secrets.*`, never
+  echoed. The session logs uploaded as a workflow artifact are
+  written by code that redacts the stream key at the source
+  (Phase 07/09); the runner never logs environment values.
+
+### Secrets to add (exact names the code reads)
+
+Repo → Settings → Secrets and variables → Actions → New
+repository secret:
+
+| Secret name | Required | Read by |
+|---|---|---|
+| `IWT_YOUTUBE_STREAM_KEY` | For `private_test` / `live` | `StreamConfig` (`game/scripts/stream_config.gd`) — the YouTube stream key from step (b) |
+| `IWT_ADMIN_TOKEN` | Recommended (if absent, the runner generates an ephemeral per-session token that nobody knows, which is fine for an unreachable-in-Actions dashboard but makes the run impossible to operate) | Dashboard login + `StreamAdmin` authorization |
+| `IWT_RTMP_INGEST_URL` | Optional override | `StreamConfig`; empty keeps the built-in default `rtmps://a.rtmps.youtube.com/live2` |
+
+### Owner steps, in order
+
+- [ ] **(a)** Create the YouTube channel (or use an existing
+  one), complete channel verification, and confirm live
+  eligibility — including the 16+ minimum-age rule (checklist
+  step 6 above; `docs/PHASE07.md`).
+- [ ] **(b)** In YouTube Studio → Go Live, create a **private**
+  test stream and copy its stream key. Set the audience
+  designation deliberately (Made for Kids determination is in
+  `docs/PHASE07.md`).
+- [ ] **(c)** Add the secrets from the table above under
+  Settings → Secrets and variables → Actions, with exactly
+  those names. Never paste the key into code, a commit, a
+  workflow file, or chat.
+- [ ] **(d)** Create the workflow file in the GitHub web UI:
+  repo → **Add file → Create new file** → name it exactly
+  `.github/workflows/stream-session.yml` → paste the full
+  contents of `deployment/github-actions/stream-session.yml`
+  → Commit. (Uploading the file to that path works too.)
+- [ ] **(e)** Run it from the Actions tab → "IWT stream
+  session" → **Run workflow**: first with mode
+  `prepare_only` (expect: stack healthy, game playing,
+  streaming NOT CONFIGURED, clean shutdown, diagnostics
+  artifact uploaded), then with mode `private_test` and the
+  default 330 minutes (or shorter for a first look). Download
+  the `stream-session-<mode>-<run id>` artifact afterwards to
+  read `session_summary.json` / `session_log.txt`.
+
+### The session cycle
+
+A run streams for at most `session_minutes`, then stops
+cleanly — that is the end of the session, not a failure. The
+channel is then offline for the planned 30–60 minute break.
+The next session starts only when the owner dispatches the
+workflow again. Nothing automates the re-trigger, by design:
+no session ever starts without the owner's explicit action.
+
+### Local validation (2026-11-25, this VM)
+
+`prepare_only`, 150 s, port 8899: Xvfb up; all three units
+RUNNING under the supervisor; dashboard login ok; game PLAYING
+(Space World, AI on); `rendering_start` continuous; two real
+segments rendered and ffprobe-validated; dashboard streaming
+section **NOT CONFIGURED**, `has_stream_key=false`,
+`ffmpeg_pid=-1` — nothing connected anywhere; graceful
+shutdown at the cap; `SESSION_RESULT ok` (5/5 gates). A grep
+of every produced diagnostic file for the (deliberately known,
+local-only) admin token found **zero** occurrences — the
+redaction held end to end. Render rate was the known
+llvmpipe ~1–4 fps of this VM; an Actions runner's rate is
+unproven until the first `prepare_only` run there.
+
 ## Controlled deployment checklist
 
 Steps marked **[OWNER]** can only be done by Selim himself
@@ -131,7 +246,10 @@ Steps marked **[OWNER]** can only be done by Selim himself
    `IWT_STREAM_VISIBILITY=private`, and choose an
    `IWT_ADMIN_TOKEN`. Never paste the key into chat, code or
    a commit. (Muse can guide; the key itself is entered by
-   the owner on the host.)
+   the owner on the host.) — *On the GitHub Actions route
+   there is no host `.env`: the same names go in the repo's
+   Actions secrets instead; see "GitHub Actions session
+   runtime" above, owner steps (a)–(e).*
 9. [ ] Start the stack under the supervisor
    (`dashboard/supervisor.py`, see `docs/RUNNING.md` Phase 09
    section) and open the dashboard: game should read RUNNING

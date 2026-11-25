@@ -104,8 +104,21 @@ built in code; there are no external or paid assets.
   pending the owner's channel + stream key; NOT READY FOR
   CONTROLLED DEPLOYMENT on current hardware (≈4 fps render)
   and NOT READY FOR PUBLIC BROADCAST.
-- **Not yet built (later phases, need owner approval):** the
-  GitHub Actions session runtime itself, and the first real
+- **GitHub Actions session runtime — prepared (2026-11-25):**
+  a manually-dispatched workflow runs one bounded streaming
+  session (default 330 min, cap 350) on the real supervised
+  stack: `scripts/stream_session.py` + the canonical workflow
+  copy at `deployment/github-actions/stream-session.yml`.
+  Manual trigger only — no cron, no auto-restart of sessions;
+  the default `prepare_only` mode removes the stream key
+  before anything starts and cannot stream; a public start
+  still demands the separate confirmation, passed through the
+  project's own gate. Validated locally in `prepare_only`
+  (stack healthy, game playing, streaming NOT CONFIGURED,
+  clean shutdown). Activation is owner steps (a)–(e) in
+  `docs/DEPLOYMENT.md`: channel, private stream key, repo
+  secrets, placing the workflow file via the GitHub web UI.
+- **Not yet done (needs the owner):** the first real
   (private) YouTube test stream, which needs the owner's own
   channel and stream key.
 

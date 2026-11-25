@@ -1,0 +1,162 @@
+# =====================================================================
+# INFINITE WORLD TV — manual streaming session (GitHub Actions)
+#
+# CANONICAL COPY — READ THIS FIRST.
+# This file is the prepared workflow, kept in the tracked tree at
+# deployment/github-actions/stream-session.yml because workflow
+# files cannot be pushed through the project's GitHub connector.
+# To ACTIVATE it (owner step, once):
+#   GitHub repo -> Add file -> Create new file ->
+#   name it exactly:  .github/workflows/stream-session.yml
+#   paste this file's full contents -> Commit.
+# (Or upload it via the web UI to that path.) Until then, nothing
+# in this file runs anywhere.
+#
+# SAFETY MODEL
+#   * Manual trigger ONLY (workflow_dispatch). There is NO
+#     schedule/cron trigger and nothing re-triggers this workflow:
+#     a stream session starts only when the owner clicks
+#     "Run workflow". See "THE SESSION CYCLE" in docs/DEPLOYMENT.md.
+#   * Default mode is prepare_only: the runner removes the stream
+#     key from the environment before anything starts, brings the
+#     whole stack up (game + AI + renderer + dashboard) and proves
+#     the dashboard honestly reports streaming NOT CONFIGURED.
+#     It cannot stream anywhere.
+#   * mode=private_test forces visibility=private in the runner
+#     and needs the IWT_YOUTUBE_STREAM_KEY secret.
+#   * mode=live additionally requires the confirm_public input to
+#     be exactly I_CONFIRM_PUBLIC_STREAM. The guard step below
+#     fails the job in seconds otherwise, the runner re-checks it
+#     before starting anything, and the flag itself is passed
+#     through the project's own gate (StreamAdmin ->
+#     StreamManager refuses a public start without it). There is
+#     no path that bypasses that gate.
+#   * Secrets are referenced only via secrets.* and are never
+#     echoed. Session logs are uploaded as an artifact; the
+#     streaming/dashboard code redacts the stream key from every
+#     log and status field it writes (Phase 07/09), and the
+#     session runner never logs environment values.
+#
+# SESSION LENGTH
+#   One job = one session. GitHub caps a job at 360 minutes;
+#   session_minutes is capped at 350 so the stack always gets its
+#   clean-shutdown window. When a session ends, the channel is
+#   offline (the planned 30-60 minute break) until the owner
+#   manually dispatches the next run. That gap is by design.
+# =====================================================================
+
+name: IWT stream session
+
+"on":
+  workflow_dispatch:
+    inputs:
+      session_minutes:
+        description: "Session length in minutes (5-350; the job itself is capped at 360)"
+        type: number
+        default: 330
+        required: true
+      mode:
+        description: "prepare_only = full stack, no key, cannot stream (SAFE). private_test = private stream. live = PUBLIC stream (needs the confirmation input)."
+        type: choice
+        options:
+          - prepare_only
+          - private_test
+          - live
+        default: prepare_only
+        required: true
+      confirm_public:
+        description: "Only for mode=live: type I_CONFIRM_PUBLIC_STREAM exactly. Ignored otherwise."
+        type: string
+        default: ""
+        required: false
+
+# Only one session at a time; a second dispatch queues, it does
+# not cancel the running session.
+concurrency:
+  group: iwt-stream-session
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  session:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+    env:
+      IWT_SESSION_MODE: ${{ inputs.mode }}
+      IWT_SESSION_DIR: ${{ github.workspace }}/session_output
+      # The Phase 07 feasibility verdict: 720p on shared runners.
+      IWT_STREAM_PRESET: "720p"
+    steps:
+      - name: Validate inputs (live-mode public confirmation gate)
+        run: |
+          set -euo pipefail
+          MINUTES="${{ inputs.session_minutes }}"
+          MODE="${{ inputs.mode }}"
+          CONFIRM="${{ inputs.confirm_public }}"
+          if ! [[ "$MINUTES" =~ ^[0-9]+$ ]] || [ "$MINUTES" -lt 5 ] || [ "$MINUTES" -gt 350 ]; then
+            echo "::error::session_minutes must be a whole number between 5 and 350 (got: $MINUTES)"
+            exit 1
+          fi
+          if [ "$MODE" = "live" ] && [ "$CONFIRM" != "I_CONFIRM_PUBLIC_STREAM" ]; then
+            echo "::error::mode=live refused: the confirm_public input must be exactly I_CONFIRM_PUBLIC_STREAM. This is the project's public-stream confirmation gate; it is never bypassed."
+            exit 1
+          fi
+          echo "SESSION_SECONDS=$(( MINUTES * 60 ))" >> "$GITHUB_ENV"
+          echo "Inputs OK: mode=$MODE session_minutes=$MINUTES"
+
+      - name: Check out the repository
+        uses: actions/checkout@v4
+
+      - name: Install Godot 4.3 (pinned — the version this project is built and tested with)
+        run: |
+          set -euo pipefail
+          wget -q "https://github.com/godotengine/godot/releases/download/4.3-stable/Godot_v4.3-stable_linux.x86_64.zip" -O /tmp/godot.zip
+          unzip -q /tmp/godot.zip -d /tmp/godot
+          sudo install -m 0755 /tmp/godot/Godot_v4.3-stable_linux.x86_64 /usr/local/bin/godot
+          godot --version
+
+      - name: Install FFmpeg and Xvfb
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg xvfb
+          ffmpeg -version | head -1
+
+      - name: Run the streaming session
+        env:
+          # The stream key is injected ONLY for the modes that can
+          # stream. In prepare_only the env value is empty AND the
+          # runner removes the variable before starting anything.
+          IWT_YOUTUBE_STREAM_KEY: ${{ inputs.mode != 'prepare_only' && secrets.IWT_YOUTUBE_STREAM_KEY || '' }}
+          IWT_ADMIN_TOKEN: ${{ secrets.IWT_ADMIN_TOKEN }}
+          # Optional override; empty keeps the code default
+          # (rtmps://a.rtmps.youtube.com/live2).
+          IWT_RTMP_INGEST_URL: ${{ secrets.IWT_RTMP_INGEST_URL }}
+          # Re-checked by the runner before a live start.
+          IWT_CONFIRM_PUBLIC: ${{ inputs.confirm_public }}
+        run: |
+          set -euo pipefail
+          bash scripts/run_stream_session.sh \
+            --mode "${{ inputs.mode }}" \
+            --duration-sec "$SESSION_SECONDS"
+
+      - name: Upload session diagnostics (logs + status, recordings excluded)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stream-session-${{ inputs.mode }}-${{ github.run_id }}
+          path: |
+            session_output/**
+            !session_output/recordings/**
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Tear down any leftover processes
+        if: always()
+        run: |
+          pkill -f "stream_session.py" || true
+          pkill -f "Godot_v4.3-stable" || true
+          pkill -f "dashboard/server.py" || true
+          echo "teardown step done"

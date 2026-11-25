@@ -19,3 +19,9 @@ secrets/
 
 # Phase 06 recordings — local evidence only, never committed
 recordings/
+
+# Phase 08 dashboard runtime state (pidfiles, logs, audit, alerts)
+dashboard/runtime/
+
+# Python bytecode
+__pycache__/

@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>INFINITE WORLD TV — Admin Dashboard</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<header>
+  <h1>INFINITE WORLD TV</h1>
+  <span class="subtitle">Central Admin Dashboard</span>
+  <span class="spacer"></span>
+  <button id="theme-toggle" type="button" title="Toggle dark mode">◐</button>
+  <button id="logout" type="button" class="hidden">Log out</button>
+</header>
+
+<section id="login-view">
+  <form id="login-form">
+    <h2>Sign in</h2>
+    <p>Enter the admin or viewer token. Tokens are exchanged for a
+       session cookie and are never stored by this page.</p>
+    <label>Token <input id="login-token" type="password"
+                        autocomplete="current-password" required></label>
+    <button type="submit">Sign in</button>
+    <p id="login-error" class="error-text"></p>
+  </form>
+</section>
+
+<main id="app-view" class="hidden">
+  <section class="card" id="overview">
+    <h2>Overview</h2>
+    <div class="grid">
+      <div>System health <span class="chip" id="ov-health">—</span></div>
+      <div>Game engine <span class="chip" id="ov-game">—</span></div>
+      <div>AI gameplay <span class="chip" id="ov-ai">—</span></div>
+      <div>Level generator <span class="chip" id="ov-gen">—</span></div>
+      <div>Rendering <span class="chip" id="ov-render">—</span></div>
+      <div>Streaming <span class="chip" id="ov-stream">—</span></div>
+      <div>Monitoring <span class="chip" id="ov-monitor">—</span></div>
+    </div>
+    <dl class="facts">
+      <div><dt>Dashboard runtime</dt><dd id="ov-runtime">—</dd></div>
+      <div><dt>Current world</dt><dd id="ov-world">—</dd></div>
+      <div><dt>Current level</dt><dd id="ov-level">—</dd></div>
+      <div><dt>Mode</dt><dd id="ov-mode">—</dd></div>
+      <div><dt>Game FPS</dt><dd id="ov-fps">—</dd></div>
+      <div><dt>CPU</dt><dd id="ov-cpu">—</dd></div>
+      <div><dt>RAM</dt><dd id="ov-ram">—</dd></div>
+      <div><dt>Disk free</dt><dd id="ov-disk">—</dd></div>
+      <div><dt>Last error</dt><dd id="ov-lasterror">—</dd></div>
+      <div><dt>Last recovery</dt><dd id="ov-lastrecovery">—</dd></div>
+    </dl>
+  </section>
+
+  <section class="card" id="game">
+    <h2>Game Monitoring</h2>
+    <dl class="facts">
+      <div><dt>State</dt><dd id="g-state">—</dd></div>
+      <div><dt>World</dt><dd id="g-world">—</dd></div>
+      <div><dt>Level</dt><dd id="g-level">—</dd></div>
+      <div><dt>Level seed</dt><dd id="g-seed">—</dd></div>
+      <div><dt>Mode</dt><dd id="g-mode">—</dd></div>
+      <div><dt>Score</dt><dd id="g-score">—</dd></div>
+      <div><dt>Progress</dt><dd id="g-progress">—</dd></div>
+      <div><dt>Difficulty index</dt><dd id="g-difficulty">—</dd></div>
+      <div><dt>FPS</dt><dd id="g-fps">—</dd></div>
+      <div><dt>AI</dt><dd id="g-ai">—</dd></div>
+      <div><dt>AI decisions</dt><dd id="g-ai-decisions">—</dd></div>
+      <div><dt>AI levels</dt><dd id="g-ai-levels">—</dd></div>
+      <div><dt>AI success rate</dt><dd id="g-ai-success">—</dd></div>
+    </dl>
+    <p class="note">No live gameplay preview: the game renders on its
+      own surface and exposes status only — a preview is not
+      technically supported by this pipeline, so none is shown.</p>
+  </section>
+
+  <section class="card" id="streaming">
+    <h2>YouTube Streaming</h2>
+    <dl class="facts">
+      <div><dt>Connection</dt><dd id="s-state">—</dd></div>
+      <div><dt>Uptime</dt><dd id="s-uptime">—</dd></div>
+      <div><dt>Resolution</dt><dd id="s-res">—</dd></div>
+      <div><dt>FPS (target / measured)</dt><dd id="s-fps">—</dd></div>
+      <div><dt>Video bitrate (target / measured)</dt><dd id="s-bitrate">—</dd></div>
+      <div><dt>FFmpeg</dt><dd id="s-ffmpeg">—</dd></div>
+      <div><dt>Reconnects</dt><dd id="s-reconnects">—</dd></div>
+      <div><dt>Dropped frames</dt><dd id="s-dropped">—</dd></div>
+      <div><dt>Last stream error</dt><dd id="s-lasterror">—</dd></div>
+      <div><dt>Last successful connection</dt><dd id="s-lastconn">—</dd></div>
+      <div><dt>Configuration</dt><dd id="s-config">—</dd></div>
+    </dl>
+    <p class="note">The stream key is never displayed anywhere in
+      this dashboard.</p>
+  </section>
+
+  <section class="card" id="controls">
+    <h2>System Controls</h2>
+    <div class="control-group">
+      <h3>Game</h3>
+      <button data-control="game_start">Start Game</button>
+      <button data-control="game_stop">Stop Game</button>
+      <button data-control="game_restart">Restart Game</button>
+      <button data-game-command="start_ai">Start AI Gameplay</button>
+      <button data-game-command="pause_ai">Pause AI Gameplay</button>
+      <button data-game-command="resume_ai">Resume AI Gameplay</button>
+    </div>
+    <div class="control-group">
+      <h3>Rendering</h3>
+      <button data-game-command="rendering_start">Start Rendering</button>
+      <button data-game-command="rendering_restart">Restart Rendering</button>
+      <button data-game-command="rendering_stop">Stop Rendering</button>
+    </div>
+    <div class="control-group">
+      <h3>Streaming</h3>
+      <button data-stream-command="prepare">Prepare Stream</button>
+      <button data-stream-command="start">Start Stream</button>
+      <button data-stream-command="stop">Stop Stream</button>
+      <button data-stream-command="restart">Restart Stream</button>
+      <button data-stream-command="health">Check Stream Health</button>
+      <label class="confirm-label"><input type="checkbox" id="confirm-public">
+        Confirm PUBLIC livestream (required only when visibility is
+        configured public)</label>
+      <label>Quality
+        <select id="quality-preset">
+          <option value="720p">720p</option>
+          <option value="1080p">1080p</option>
+        </select></label>
+      <button id="quality-apply">Configure Streaming Quality</button>
+      <label class="confirm-label"><input type="checkbox" id="auto-recovery" checked>
+        Automatic Recovery (stream)</label>
+    </div>
+    <div class="control-group">
+      <h3>System</h3>
+      <button data-control="health_check">Run Health Check</button>
+      <button data-control="stream_service_restart">Restart Streaming Service</button>
+    </div>
+    <p id="control-result" class="result" role="status"></p>
+  </section>
+
+  <section class="card" id="alerts">
+    <h2>Alerts</h2>
+    <ul id="alert-list"><li class="muted">No alerts recorded.</li></ul>
+  </section>
+
+  <section class="card" id="logs">
+    <h2>Logs &amp; Diagnostics</h2>
+    <div class="log-controls">
+      <label>Source
+        <select id="log-source">
+          <option value="">All</option>
+          <option value="stream">Stream</option>
+          <option value="game">Game</option>
+          <option value="dashboard">Dashboard</option>
+          <option value="audit">Audit</option>
+          <option value="alerts">Alerts</option>
+        </select></label>
+      <label>Severity
+        <select id="log-severity">
+          <option value="">All</option>
+          <option value="info">Info</option>
+          <option value="warn">Warning</option>
+          <option value="error">Error</option>
+        </select></label>
+      <label>Search <input id="log-q" type="search"
+                           placeholder="keyword"></label>
+      <button id="log-refresh" type="button">Filter</button>
+      <button id="log-export" type="button">Export diagnostics</button>
+    </div>
+    <div class="log-table-wrap">
+      <table id="log-table">
+        <thead><tr><th>Time</th><th>Severity</th><th>Source</th>
+          <th>Module</th><th>Message</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>

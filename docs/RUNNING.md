@@ -129,3 +129,30 @@ GODOT=godot bash tests/run_stream_tests.sh
 # eligibility rules (operator must be 16+) and the honest
 # free-infrastructure feasibility report.
 ```
+
+## Admin dashboard (Phase 08)
+
+A web dashboard over everything above — real status and controls,
+nothing simulated. Localhost only by default.
+
+```bash
+export IWT_ADMIN_TOKEN=...          # login credential (SECRET)
+export IWT_VIEWER_TOKEN=...         # optional read-only role
+export IWT_GODOT_BIN=/path/to/godot # or `godot` on PATH
+python3 dashboard/server.py         # http://127.0.0.1:8787
+```
+
+Sign in with a token; the dashboard can then start/stop the game
+service, drive AI gameplay and rendering through the game bridge,
+and operate streaming through the persistent stream service into
+the real Phase 07 StreamAdmin (a public start still requires the
+separate confirmation). With no stream key configured the
+streaming section correctly reads NOT CONFIGURED. See
+`docs/PHASE08.md` for the API, security model and limitations.
+
+Verify:
+
+```bash
+GODOT=godot bash tests/run_dashboard_tests.sh
+# Expected: DASHBOARD_DONE failures=0 (45 checks)
+```

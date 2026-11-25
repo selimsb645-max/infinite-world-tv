@@ -1,0 +1,113 @@
+:root {
+  --bg: #f4f5f7;
+  --card: #ffffff;
+  --text: #1c1e21;
+  --muted: #5f6368;
+  --border: #d7dade;
+  --accent: #0b57d0;
+  --ok: #137333;
+  --warn: #b06000;
+  --err: #b3261e;
+  --off: #5f6368;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #17181a;
+    --card: #222427;
+    --text: #e8eaed;
+    --muted: #9aa0a6;
+    --border: #3c4043;
+    --accent: #8ab4f8;
+    --ok: #81c995;
+    --warn: #f9ab78;
+    --err: #f28b82;
+    --off: #9aa0a6;
+  }
+}
+html[data-theme="dark"] {
+  --bg: #17181a; --card: #222427; --text: #e8eaed; --muted: #9aa0a6;
+  --border: #3c4043; --accent: #8ab4f8; --ok: #81c995; --warn: #f9ab78;
+  --err: #f28b82; --off: #9aa0a6;
+}
+html[data-theme="light"] {
+  --bg: #f4f5f7; --card: #ffffff; --text: #1c1e21; --muted: #5f6368;
+  --border: #d7dade; --accent: #0b57d0; --ok: #137333; --warn: #b06000;
+  --err: #b3261e; --off: #5f6368;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+header {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.75rem 1rem; background: var(--card);
+  border-bottom: 1px solid var(--border);
+}
+header h1 { font-size: 1.1rem; margin: 0; }
+.subtitle { color: var(--muted); }
+.spacer { flex: 1; }
+main {
+  display: grid; gap: 1rem; padding: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 1400px; margin: 0 auto;
+}
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem;
+}
+.card h2 { margin-top: 0; font-size: 1.05rem; }
+.grid { display: grid; gap: 0.5rem; grid-template-columns: repeat(2, 1fr); }
+.facts { display: grid; gap: 0.35rem 1rem; grid-template-columns: 1fr 1fr; }
+.facts > div { display: flex; justify-content: space-between; gap: 0.5rem;
+  border-bottom: 1px dashed var(--border); padding-bottom: 0.2rem; }
+.facts dt { color: var(--muted); }
+.facts dd { margin: 0; text-align: right; overflow-wrap: anywhere; }
+.chip {
+  display: inline-block; padding: 0.05rem 0.5rem; border-radius: 999px;
+  border: 1px solid var(--border); font-size: 0.8rem; font-weight: 600;
+}
+.chip.online, .chip.running { color: var(--ok); border-color: var(--ok); }
+.chip.warning { color: var(--warn); border-color: var(--warn); }
+.chip.error { color: var(--err); border-color: var(--err); }
+.chip.offline, .chip.stopped, .chip.not-configured { color: var(--off); }
+button {
+  background: var(--card); color: var(--text); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.4rem 0.7rem; cursor: pointer; margin: 0.15rem;
+}
+button:hover { border-color: var(--accent); color: var(--accent); }
+button:disabled { opacity: 0.5; cursor: default; }
+input, select {
+  background: var(--card); color: var(--text); border: 1px solid var(--border);
+  border-radius: 6px; padding: 0.4rem;
+}
+.hidden { display: none !important; }
+.error-text { color: var(--err); }
+.muted { color: var(--muted); }
+.note { color: var(--muted); font-size: 0.85rem; }
+.result { min-height: 1.2em; font-family: ui-monospace, monospace;
+  font-size: 0.85rem; overflow-wrap: anywhere; }
+#login-view { max-width: 420px; margin: 3rem auto; padding: 0 1rem; }
+#login-form { background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.25rem; display: grid; gap: 0.75rem; }
+.control-group { border-top: 1px solid var(--border); padding: 0.5rem 0; }
+.control-group h3 { margin: 0.3rem 0; font-size: 0.95rem; }
+.confirm-label { display: block; margin: 0.4rem 0; font-size: 0.9rem; }
+.log-controls { display: flex; flex-wrap: wrap; gap: 0.5rem;
+  align-items: end; margin-bottom: 0.5rem; }
+.log-table-wrap { overflow-x: auto; max-height: 420px; overflow-y: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
+th, td { text-align: left; padding: 0.3rem 0.45rem;
+  border-bottom: 1px solid var(--border); vertical-align: top; }
+td { overflow-wrap: anywhere; }
+#alert-list { margin: 0; padding-left: 1.1rem; }
+#logs, #controls, #alerts { grid-column: span 2; }
+
+/* Mobile layout: single column, full-width cards. */
+@media (max-width: 760px) {
+  main { grid-template-columns: 1fr; padding: 0.6rem; }
+  #logs, #controls, #alerts { grid-column: span 1; }
+  .facts { grid-template-columns: 1fr; }
+  .grid { grid-template-columns: 1fr; }
+  header { flex-wrap: wrap; }
+}

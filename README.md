@@ -66,10 +66,25 @@ built in code; there are no external or paid assets.
   free-infrastructure feasibility report: no free tier guarantees
   24/7; the realistic free mode is ~6 h GitHub Actions sessions
   with breaks, started manually.
-- **Not yet built (later phases, need owner approval):** admin
-  dashboard UI, the GitHub Actions session runtime itself, and the
-  first real (private) YouTube test stream, which needs the
-  owner's own channel and stream key.
+- **Phase 08 — Central Admin Dashboard & System Monitoring:**
+  built and tested locally. Authenticated web dashboard over the
+  real system: Python-stdlib backend (sessions, admin/viewer
+  roles, login rate limiting, audit log, redaction) aggregating
+  live status from `/proc`, process liveness, the Phase 06
+  recordings and two additive Godot bridges — a game bridge
+  (GameManager / AutonomousController / VideoRenderer status +
+  commands) and a persistent streaming service driving the real
+  Phase 07 StreamAdmin. Controls act on the actual modules
+  (public stream start still needs the separate Phase 07
+  confirmation); alerts evaluate real failure/usage conditions
+  into a local log. Dashboard suite 45/45 passing (see
+  `docs/PHASE08.md`). No fake metrics: with nothing running the
+  dashboard honestly reads game STOPPED, streaming
+  NOT CONFIGURED (no stream key exists yet).
+- **Not yet built (later phases, need owner approval):** the
+  GitHub Actions session runtime itself, and the first real
+  (private) YouTube test stream, which needs the owner's own
+  channel and stream key.
 
 ## Run it
 
@@ -94,10 +109,11 @@ godot --headless --path game res://tests/SmokeTest.tscn
 
 ## Layout
 
-- `game/` — the Godot project (`project.godot`, `scenes/`, `scripts/`, `tests/`)
+- `game/` — the Godot project (`project.godot`, `scenes/`, `scripts/`, `tests/`, `dashboard/` bridges)
 - `docs/` — architecture and run instructions
-- `tests/` — testing report and last smoke-test output
-- `streaming/`, `dashboard/` — placeholders for later approved phases
+- `tests/` — testing reports and last test outputs
+- `dashboard/` — Phase 08 admin dashboard (Python backend + static UI)
+- `streaming/` — placeholder for later approved phases
 
 Zero-cost rule: free and open-source tools only (Godot, Blender-compatible
 pipeline, FFmpeg later). No paid services, no secrets in the repo.

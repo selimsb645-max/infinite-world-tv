@@ -12,10 +12,10 @@ PASS: gameplay_mode_switches — switches=1
 PASS: gameplay_ai_decisions — decisions=136
 PASS: gameplay_progress — travelled=81.0 levels=0
 PASS: renderer_created
-MEASURED render: frames=45 capture_fps=4.18 encode_fps=17.53 game_fps=4.0 sync=0.000
+MEASURED render: frames=45 capture_fps=3.66 encode_fps=22.26 game_fps=3.0 sync=0.000
 PASS: render_segment_valid — issues=["MISSING_FRAMES", "LOW_CAPTURE_FPS"]
 PASS: render_frames_captured — frames=45
-PASS: render_file_exists — /home/hatch/workspace/infinite-world-tv/game/../recordings/run_e2e/iwtv_20261125_091008_seg001.mp4
+PASS: render_file_exists — /home/hatch/workspace/infinite-world-tv/game/../recordings/run_e2e/iwtv_20261125_101105_seg001.mp4
 PASS: render_probe_h264_aac — issues=[]
 PASS: render_av_sync — sync=0.000
 MEASURED capture_health: { "healthy": true, "issues": [] }
@@ -39,9 +39,9 @@ PASS: bridge_reports_generated_level_and_ai
 MEASURED bridge: state=PLAYING mode=character seed=178605489 world=Space World fps=1
 PASS: dashboard_reflects_playing_game
 PASS: dashboard_reflects_ai_running
-MEASURED injected SIGKILL unit=game pid=27746
+MEASURED injected SIGKILL unit=game pid=39580
 PASS: supervisor_recovers_killed_game
-MEASURED recovered unit=game new_pid=27781 restarts=1
+MEASURED recovered unit=game new_pid=39611 restarts=1
 PASS: dashboard_survives_game_fault
 PASS: bridge_resumes_after_recovery
 INTEGRATION_SYSTEM_DONE failures=0

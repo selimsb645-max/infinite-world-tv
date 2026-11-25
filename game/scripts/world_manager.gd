@@ -4,15 +4,36 @@ extends Node3D
 ## ground + path, decorations (style depends on the theme), obstacles,
 ## collectibles, a vehicle pad (mode-switch trigger) and a finish zone.
 ## Everything is original primitive geometry created in code.
+##
+## Phase 05.1: decorations, obstacles and collectibles are built by
+## the Phase 05 libraries (EnvironmentAssetLibrary,
+## ObstacleCollectibleLibrary) with live fix-ups documented at each
+## builder; colours come through MaterialLibrary.palette(). Ground,
+## strips, platforms and other gameplay-critical structures are
+## unchanged Phase 02/03 geometry.
 
 signal collectible_picked(area: Area3D)
 signal finish_reached
 signal vehicle_pad_entered
 
+# Phase 05.1: live obstacle type -> Phase 05 library kind. The
+# affordance of each Phase 02 type is preserved by the fix-ups in
+# _make_obstacle (jump gate is jumpable, slide barrier keeps a
+# slide-sized gap underneath, road barrier is a solid block).
+const OBSTACLE_KIND_MAP := {
+	"jump": "jump_gate", "slide": "sliding_barrier", "block": "road_barrier",
+}
+# Body-origin height per live type: the slide barrier is raised so
+# its underside leaves a 1.2 m gap (Phase 02 geometry had its
+# underside at 1.2 m too); jump/block sit on the ground.
+const OBSTACLE_BASE_Y := {"jump": 0.0, "slide": 1.2, "block": 0.0}
+
 var _root: Node3D
 var _collectibles: Array[Area3D] = []
 var _spin_phase: float = 0.0
 var _active_body: Node3D
+var _world_name: String = ""
+var _palette: Dictionary = {}
 
 # Phase 03: pooled high-churn nodes (obstacles, collectibles) and
 # moving-platform animation state. Pools persist across level builds.
@@ -74,8 +95,13 @@ func clear() -> void:
 	_root.name = "LevelRoot"
 	add_child(_root)
 
-func build(level: Dictionary, theme: Dictionary) -> void:
+func build(level: Dictionary, theme: Dictionary, world_name: String = "") -> void:
 	clear()
+	# Phase 05.1: the world this build belongs to drives the Phase 05
+	# prop library and the MaterialLibrary palette. Callers pass the
+	# applied theme name; generated levels carry it in the level data.
+	_world_name = world_name if world_name != "" else str(level.get("theme", ""))
+	_palette = MaterialLibrary.palette(_world_name)
 	var length: float = level["length"]
 	var width: float = level["width"]
 	# Ground + path: generated levels supply explicit strips (which
@@ -137,9 +163,30 @@ func _build_decor(level: Dictionary, theme: Dictionary, length: float, width: fl
 		var side := -1.0 if i % 2 == 0 else 1.0
 		var x: float = side * (width / 2.0 + rng.randf_range(2.5, 9.0))
 		var z: float = rng.randf_range(-length + 4.0, 4.0)
-		var decor := _make_decor(style, theme, rng)
+		# Phase 05.1: Phase 05 library prop for this world, placed
+		# exactly where Phase 02 decor went (roadside, off-route).
+		# Only non-solid kinds are used as decor: solid library kinds
+		# (platform/bridge/tunnel) are real geometry and roadside
+		# collision was never part of decor behaviour. The legacy
+		# builder remains as fallback for unknown worlds.
+		var decor := _make_world_prop(rng)
+		if decor == null:
+			decor = _make_decor(style, theme, rng)
 		decor.position = Vector3(x, 0.0, z)
 		_root.add_child(decor)
+
+func _make_world_prop(rng: RandomNumberGenerator) -> Node3D:
+	var kinds: Array[String] = []
+	for kind in EnvironmentAssetLibrary.prop_kinds(_world_name):
+		if not EnvironmentAssetLibrary.is_solid(kind):
+			kinds.append(kind)
+	if kinds.is_empty():
+		return null
+	var prop := EnvironmentAssetLibrary.build_prop(
+		_world_name, kinds[rng.randi_range(0, kinds.size() - 1)])
+	if prop != null:
+		prop.rotation.y = rng.randf_range(0.0, TAU)
+	return prop
 
 func _make_decor(style: String, theme: Dictionary, rng: RandomNumberGenerator) -> Node3D:
 	var root := Node3D.new()
@@ -288,6 +335,7 @@ func _build_generated_structures(level: Dictionary, theme: Dictionary, width: fl
 		_root.add_child(roof)
 
 func _make_collectible(pos: Vector3, theme: Dictionary) -> Area3D:
+	var color: Color = _palette.get("collectible", theme["collectible_color"])
 	var pooled := _collectible_pool.acquire("collectible")
 	if pooled != null:
 		var area := pooled as Area3D
@@ -296,50 +344,86 @@ func _make_collectible(pos: Vector3, theme: Dictionary) -> Area3D:
 		area.monitoring = true
 		area.visible = true
 		(area.get_child(1) as MeshInstance3D).material_override = \
-			CollisionManager.make_material(theme["collectible_color"], 0.7)
+			CollisionManager.make_material(color, 0.7)
 		return area
 	_collectible_pool.note_created()
-	var fresh := CollisionManager.make_collectible(pos, theme["collectible_color"])
+	# Phase 05.1: the Phase 05 library coin (metadata score 10 — the
+	# same value GameManager awards). Two live fix-ups: the library
+	# ships mask 0 (pure library use), so set the player mask or
+	# body_entered can never fire; and keep the game's tuned 0.55
+	# detection radius instead of the library's 0.35.
+	var fresh := ObstacleCollectibleLibrary.build_collectible("coin")
+	fresh.collision_mask = CollisionManager.LAYER_PLAYER
+	var shape_node := fresh.get_child(0) as CollisionShape3D
+	(shape_node.shape as SphereShape3D).radius = 0.55
+	(fresh.get_child(1) as MeshInstance3D).material_override = \
+		CollisionManager.make_material(color, 0.7)
+	fresh.position = pos
 	fresh.set_meta("base_y", pos.y)
 	fresh.body_entered.connect(_on_collectible_body.bind(fresh))
 	return fresh
 
 func _make_obstacle(ob: Dictionary, theme: Dictionary) -> StaticBody3D:
-	var color: Color = theme["obstacle_color"]
+	var color: Color = _palette.get("obstacle", theme["obstacle_color"])
 	var type: String = str(ob["type"])
-	var center_y: float = 1.1
-	match type:
-		"jump":
-			center_y = 0.4
-		"slide":
-			center_y = 1.75
+	var base_y: float = float(OBSTACLE_BASE_Y.get(type, 0.0))
 	var pooled := _obstacle_pool.acquire(type)
 	if pooled != null:
 		var reused := pooled as StaticBody3D
-		reused.position = Vector3(float(ob["x"]), center_y, float(ob["z"]))
+		reused.position = Vector3(float(ob["x"]), base_y, float(ob["z"]))
 		(reused.get_child(1) as MeshInstance3D).material_override = \
 			CollisionManager.make_material(color)
 		return reused
 	_obstacle_pool.note_created()
-	var body: StaticBody3D
-	match type:
-		"jump":  # low barrier: jump over it
-			body = CollisionManager.make_static_box(
-				Vector3(6.0, 0.8, 0.6), Vector3(ob["x"], 0.4, ob["z"]), color, "obstacle")
-		"slide":  # high barrier with a gap underneath: slide under it
-			body = CollisionManager.make_static_box(
-				Vector3(6.0, 1.1, 0.6), Vector3(ob["x"], 1.75, ob["z"]), color, "obstacle")
-		_:  # "block": solid cube, steer around it
-			body = CollisionManager.make_static_box(
-				Vector3(2.2, 2.2, 2.2), Vector3(ob["x"], 1.1, ob["z"]), color, "obstacle")
+	# Phase 05.1: build the Phase 05 library obstacle for this live
+	# type. Fix-ups so collision matches the visual exactly:
+	# the library centres its shape on the body origin while its
+	# mesh sits on top of the origin, so shift the shape up by half
+	# its height — collision and mesh then both span 0..height above
+	# the body origin. The slide barrier's origin is raised by
+	# OBSTACLE_BASE_Y, leaving the slide gap underneath.
+	var kind: String = str(OBSTACLE_KIND_MAP.get(type, "road_barrier"))
+	var body := ObstacleCollectibleLibrary.build_obstacle(kind)
+	if body == null:  # unknown kind: keep the game playable
+		body = CollisionManager.make_static_box(
+			Vector3(2.2, 2.2, 2.2), Vector3(ob["x"], 1.1, ob["z"]), color, "obstacle")
+		body.set_meta("pool_key", type)
+		return body
+	var size: Vector3 = ObstacleCollectibleLibrary.obstacle_metadata(kind)["size"]
+	(body.get_child(0) as CollisionShape3D).position.y = size.y * 0.5
+	if type == "slide":
+		# The library kind is a moving-barrier design; the live
+		# game's slide obstacles have always been static.
+		body.set_meta("moves", false)
 	body.set_meta("pool_key", type)
+	body.set_meta("obstacle_kind", kind)
+	(body.get_child(1) as MeshInstance3D).material_override = \
+		CollisionManager.make_material(color)
+	body.position = Vector3(float(ob["x"]), base_y, float(ob["z"]))
 	return body
+
+## Phase 05.1: fire a one-shot Phase 05 VFX effect at a world
+## position (collect sparkle, celebrate burst). The emitter frees
+## itself after its lifetime; effects are few, small and one-shot,
+## which keeps them performance-safe.
+func play_vfx(effect_name: String, pos: Vector3) -> void:
+	var particles := MaterialLibrary.build_vfx(effect_name)
+	if particles == null:
+		return
+	var host: Node = _root if _root != null and is_instance_valid(_root) else self
+	host.add_child(particles)
+	particles.global_position = pos
+	particles.restart()
+	get_tree().create_timer(1.5).timeout.connect(func() -> void:
+		if is_instance_valid(particles):
+			particles.queue_free())
 
 func _on_collectible_body(body: Node3D, area: Area3D) -> void:
 	if not _is_active(body):
 		return
 	if body.global_position.distance_to(area.global_position) > 2.5:
 		return
+	play_vfx("collect_sparkle", area.global_position)
 	_collectibles.erase(area)
 	area.set_deferred("monitoring", false)
 	call_deferred("_release_collectible_deferred", area)

@@ -1,8 +1,15 @@
 class_name CharacterController
 extends CharacterBody3D
-## Original cartoon runner built from primitives (capsule body, sphere
-## head). Auto-runs forward (-Z), strafes with move_left/move_right,
-## jumps and slides. Physics via CharacterBody3D.move_and_slide().
+## Cartoon runner. Auto-runs forward (-Z), strafes with
+## move_left/move_right, jumps and slides. Physics via
+## CharacterBody3D.move_and_slide() — the physics body is always the
+## authority; the visual is a child that only follows it.
+##
+## Phase 05.1: the visual is a CharacterFactory model (Phase 05)
+## posed by the CharacterAnimation state machine from real gameplay
+## state. The original Phase 02 primitive visual remains available
+## via factory_visual_enabled = false (tools/tests fallback) and is
+## built by the exact original code path.
 
 signal bumped_obstacle
 
@@ -16,9 +23,20 @@ var active: bool = false
 var sliding: bool = false
 var input_manager: InputManager
 
+## Phase 05.1: which factory character/variant this runner shows.
+var character_name: String = "Pip"
+var character_variant: int = 0
+## Phase 05.1: true = Phase 05 factory visual; false = Phase 02
+## primitive visual (fallback / comparison mode).
+var factory_visual_enabled: bool = true
+
 var _slide_timer: float = 0.0
 var _bob_phase: float = 0.0
 var _visual: Node3D
+var _factory_visual: Node3D
+var _anim: CharacterAnimation
+var _recover_timer: float = 0.0
+var _celebrate_timer: float = 0.0
 var _shape_node: CollisionShape3D
 var _stand_shape: CapsuleShape3D
 var _slide_shape: CapsuleShape3D
@@ -43,6 +61,76 @@ func _build_visual() -> void:
 	_visual = Node3D.new()
 	_visual.name = "Visual"
 	add_child(_visual)
+	if factory_visual_enabled:
+		_build_factory_visual()
+	else:
+		_build_primitive_visual()
+
+## Phase 05.1: build the Phase 05 factory model under the Visual
+## container and bind the animation state machine to it.
+func _build_factory_visual() -> void:
+	_clear_visual_children()
+	_factory_visual = CharacterFactory.build(character_name, character_variant)
+	if _factory_visual == null:
+		character_name = "Pip"
+		character_variant = 0
+		_factory_visual = CharacterFactory.build(character_name, character_variant)
+	_visual.add_child(_factory_visual)
+	_anim = CharacterAnimation.new(_factory_visual)
+
+func _clear_visual_children() -> void:
+	if _visual == null:
+		return
+	for child in _visual.get_children():
+		_visual.remove_child(child)
+		child.queue_free()
+	_factory_visual = null
+	_anim = null
+
+## Switch the live character to another factory character/variant.
+## Returns false (and changes nothing) for an unknown name.
+func set_character(new_name: String, variant: int = -1) -> bool:
+	if CharacterFactory.spec(new_name).is_empty():
+		return false
+	character_name = new_name
+	if variant >= 0:
+		character_variant = clampi(variant, 0, CharacterFactory.variant_count() - 1)
+	if factory_visual_enabled and _visual != null:
+		_build_factory_visual()
+	return true
+
+## Toggle between the Phase 05 factory visual and the Phase 02
+## primitive visual, rebuilding in place. Physics is untouched.
+func set_factory_visual_enabled(enabled: bool) -> void:
+	factory_visual_enabled = enabled
+	if _visual == null:
+		return
+	if enabled:
+		_build_factory_visual()
+	else:
+		_clear_visual_children()
+		_build_primitive_visual()
+
+## "factory" while a CharacterFactory model is the live visual,
+## "primitive" while the Phase 02 fallback visual is shown.
+func visual_kind() -> String:
+	return "factory" if _factory_visual != null else "primitive"
+
+func factory_visual() -> Node3D:
+	return _factory_visual
+
+## Current CharacterAnimation state, or "" in primitive mode.
+func animation_state() -> String:
+	return _anim.state() if _anim != null else ""
+
+## Gameplay event hook (level finish): celebrate briefly.
+func celebrate() -> void:
+	if _anim != null and _anim.transition_to("celebrate"):
+		_celebrate_timer = 0.9
+
+## Original Phase 02 primitive visual (capsule body, sphere head) —
+## kept verbatim as the fallback/comparison visual.
+func _build_primitive_visual() -> void:
 	var body := MeshInstance3D.new()
 	var capsule := CapsuleMesh.new()
 	capsule.radius = 0.42
@@ -82,6 +170,13 @@ func reset_to(pos: Vector3) -> void:
 	_slide_timer = 0.0
 	_shape_node.shape = _stand_shape
 	_shape_node.position.y = 0.9
+	if _anim != null:
+		_recover_timer = 0.0
+		_celebrate_timer = 0.0
+		if _anim.can_transition("run"):
+			_anim.transition_to("run")
+		elif _anim.can_transition("idle"):
+			_anim.transition_to("idle")
 
 func try_jump() -> bool:
 	if is_on_floor() and not sliding:
@@ -131,9 +226,13 @@ func _physics_process(delta: float) -> void:
 	global_position.x = clampf(global_position.x, -9.0, 9.0)
 	if global_position.y < -5.0:
 		reset_to(Vector3(global_position.x, 0.5, global_position.z + 10.0))
-	# Simple procedural animation: bob while running, tilt while sliding.
-	_bob_phase += delta * RUN_SPEED * 1.4
-	if _visual != null:
+	if _anim != null:
+		# Phase 05.1: the Phase 05 state machine poses the factory
+		# model from the real movement state computed above.
+		_drive_animation(delta)
+	elif _visual != null:
+		# Phase 02 fallback posing: bob while running, tilt while sliding.
+		_bob_phase += delta * RUN_SPEED * 1.4
 		if sliding:
 			_visual.rotation.x = -1.1
 			_visual.position.y = -0.35
@@ -149,4 +248,36 @@ func _physics_process(delta: float) -> void:
 		var collider := get_slide_collision(i).get_collider()
 		if collider != null and collider.is_in_group("obstacle"):
 			bumped_obstacle.emit()
+			if _anim != null and _anim.transition_to("recover"):
+				_recover_timer = 0.45
 			break
+
+## Phase 05.1: derive animation transitions from live gameplay
+## state, then let CharacterAnimation pose the factory model.
+## States with no live trigger in current gameplay: "sprint" (the
+## runner's speed is fixed) and "climb" (no climbable surfaces) —
+## both remain in the machine for future mechanics.
+func _drive_animation(delta: float) -> void:
+	var airborne := not is_on_floor()
+	var spd := current_speed()
+	if _recover_timer > 0.0:
+		_recover_timer -= delta
+	elif _celebrate_timer > 0.0:
+		_celebrate_timer -= delta
+		if _celebrate_timer <= 0.0 and not airborne and not sliding:
+			_anim.transition_to("run" if spd > 0.5 else "idle")
+	elif airborne:
+		if velocity.y > 0.5 and _anim.state() in ["run", "sprint", "idle", "land"]:
+			_anim.transition_to("jump")
+		elif velocity.y < -0.5 and _anim.state() == "jump":
+			_anim.transition_to("fall")
+	elif sliding:
+		_anim.transition_to("slide")
+	else:
+		match _anim.state():
+			"land":
+				if _anim.time_in_state() > 0.15:
+					_anim.transition_to("run" if spd > 0.5 else "idle")
+			"slide", "recover", "celebrate", "idle", "climb", "sprint":
+				_anim.transition_to("run" if spd > 0.5 else "idle")
+	_anim.update(delta, spd, airborne, sliding)

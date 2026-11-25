@@ -26,7 +26,7 @@ PASS: prepare_missing_audio_rejected
 PASS: start_without_credentials_refused
 PASS: admin_wrong_token_refused
 PASS: admin_empty_token_refused
-PASS: stream_starts — { "ok": true, "pid": 22681 }
+PASS: stream_starts — { "ok": true, "pid": 37354 }
 PASS: stream_data_flows — frames=25
 PASS: duplicate_start_refused
 PASS: monitoring_snapshot_live — fps=25.0

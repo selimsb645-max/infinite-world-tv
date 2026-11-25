@@ -1,0 +1,98 @@
+== Phase 05.1 asset integration — logic suite (headless) ==
+MEASURED factory_build_ms character=5.52 vehicle=2.35 prop=1.03
+PASS: factory_builds_fast — char=5.52 veh=2.35 prop=1.03 ms
+PASS: main_scene_loads
+PASS: live_character_uses_factory
+PASS: live_character_is_selected_default — name=Character_Pip
+PASS: factory_character_parts_present
+PASS: animation_machine_attached — state=run
+PASS: set_character_rejects_unknown
+PASS: set_character_switches_live
+PASS: anim_run_state_in_play — state=run
+PASS: anim_jump_and_land
+PASS: anim_slide_state — state=slide
+PASS: anim_recovers_to_run_after_slide — state=run
+PASS: anim_recover_state_on_obstacle_bump — state=recover
+PASS: anim_celebrate_on_finish — state=celebrate
+PASS: finish_path_scores_and_advances — score 0 -> 100
+PASS: live_vehicle_uses_factory
+PASS: live_vehicle_is_selected_default — name=Vehicle_SportsCar
+PASS: vehicle_four_wheel_pivots — pivots=4
+PASS: vehicle_collision_from_factory_spec — size=(1.7, 0.85, 3.4) spec=(1.7, 0.85, 3.4)
+PASS: set_vehicle_kind_rejects_unknown
+PASS: set_vehicle_kind_switches_live
+PASS: vehicle_wheels_spin_from_speed — spin=6.96 speed=7.33
+PASS: vehicle_front_wheels_steer
+PASS: mode_switch_to_vehicle_keeps_factory
+PASS: mode_switch_back_keeps_factory
+PASS: world_props_Green_Valley — props=4 kinds_ok=true route_clear=true
+PASS: world_props_Neon_City — props=3 kinds_ok=true route_clear=true
+PASS: world_props_Desert_World — props=4 kinds_ok=true route_clear=true
+PASS: world_props_Snow_Mountain — props=4 kinds_ok=true route_clear=true
+PASS: world_props_Space_World — props=4 kinds_ok=true route_clear=true
+PASS: world_props_Ocean_World — props=4 kinds_ok=true route_clear=true
+PASS: world_props_Fantasy_Islands — props=4 kinds_ok=true route_clear=true
+PASS: world_props_Futuristic_Highway — props=3 kinds_ok=true route_clear=true
+PASS: obstacles_are_phase05_library_kinds — bodies=5 kinds=["jump_gate", "sliding_barrier", "road_barrier"]
+PASS: jump_obstacle_grounded_and_jumpable
+PASS: slide_obstacle_keeps_gap
+PASS: block_obstacle_grounded
+PASS: collectibles_are_phase05_coins — coins=6
+PASS: collectible_pickup_scores_live — score 0 -> 10
+PASS: pooling_bounded_and_reused — reused=86 pool=4
+MEASURED live_scene nodes=187 level_build_ms=24.9 static_mem_mb=33.2
+PASS: live_scene_node_count_sane — nodes=187
+PASS: ai_autopilot_plays_with_factory_visuals — decisions=121 travelled=68.2
+PASS: ai_run_keeps_factory_visuals
+PASS: generation_still_valid_25_levels
+PASS: guard_factory_integration_present
+PASS: guard_catches_primitive_fallback
+PASS: guard_green_after_restore
+PASS: game_service_scene_loads
+PASS: dashboard_bridge_reports_real_state — state=PLAYING world=Green Valley
+ASSET_INTEGRATION_LOGIC_DONE failures=0
+== Phase 05.1 visual QA — primitive mode (before) ==
+PASS: qa_character_frame_rendered — size=(1280, 720)
+PASS: qa_transition_switched_mode
+PASS: qa_vehicle_frame_rendered
+PASS: qa_world_sky_Green_Valley — avg=(0.53,0.78,0.88) sky=(0.53,0.81,0.92) diff=0.04
+PASS: qa_world_sky_Neon_City — avg=(0.13,0.09,0.23) sky=(0.07,0.03,0.18) diff=0.06
+PASS: qa_world_sky_Desert_World — avg=(0.94,0.83,0.60) sky=(0.98,0.85,0.60) diff=0.04
+PASS: qa_world_sky_Snow_Mountain — avg=(0.77,0.83,0.92) sky=(0.80,0.88,0.98) diff=0.06
+PASS: qa_world_sky_Space_World — avg=(0.06,0.06,0.10) sky=(0.01,0.01,0.05) diff=0.05
+PASS: qa_world_sky_Ocean_World — avg=(0.39,0.75,0.89) sky=(0.35,0.75,0.90) diff=0.04
+PASS: qa_world_sky_Fantasy_Islands — avg=(0.73,0.60,0.90) sky=(0.75,0.60,0.95) diff=0.05
+PASS: qa_world_sky_Futuristic_Highway — avg=(0.16,0.20,0.33) sky=(0.05,0.10,0.25) diff=0.11
+PASS: qa_broadcast_renderer_created
+PASS: qa_overlay_changes_pixels
+MEASURED qa_fps=4.00 mode=primitive
+PASS: qa_fps_measured_positive — frames=24
+VISUAL_QA_DONE failures=0 mode=primitive
+== Phase 05.1 visual QA — factory mode (integrated) ==
+PASS: qa_character_frame_rendered — size=(1280, 720)
+PASS: qa_character_factory_colours_in_frame — nova_purple_pixels=193
+PASS: qa_transition_switched_mode
+PASS: qa_vehicle_factory_colours_in_frame — sportscar_red_pixels=1181
+PASS: qa_vehicle_frame_rendered
+PASS: qa_world_sky_Green_Valley — avg=(0.53,0.78,0.88) sky=(0.53,0.81,0.92) diff=0.04
+PASS: qa_world_props_Green_Valley — props=4
+PASS: qa_world_sky_Neon_City — avg=(0.13,0.09,0.23) sky=(0.07,0.03,0.18) diff=0.06
+PASS: qa_world_props_Neon_City — props=3
+PASS: qa_world_sky_Desert_World — avg=(0.94,0.83,0.60) sky=(0.98,0.85,0.60) diff=0.04
+PASS: qa_world_props_Desert_World — props=4
+PASS: qa_world_sky_Snow_Mountain — avg=(0.77,0.83,0.92) sky=(0.80,0.88,0.98) diff=0.06
+PASS: qa_world_props_Snow_Mountain — props=4
+PASS: qa_world_sky_Space_World — avg=(0.06,0.06,0.10) sky=(0.01,0.01,0.05) diff=0.05
+PASS: qa_world_props_Space_World — props=4
+PASS: qa_world_sky_Ocean_World — avg=(0.39,0.75,0.89) sky=(0.35,0.75,0.90) diff=0.04
+PASS: qa_world_props_Ocean_World — props=4
+PASS: qa_world_sky_Fantasy_Islands — avg=(0.73,0.60,0.90) sky=(0.75,0.60,0.95) diff=0.05
+PASS: qa_world_props_Fantasy_Islands — props=4
+PASS: qa_world_sky_Futuristic_Highway — avg=(0.16,0.20,0.33) sky=(0.05,0.10,0.25) diff=0.11
+PASS: qa_world_props_Futuristic_Highway — props=3
+PASS: qa_broadcast_renderer_created
+PASS: qa_overlay_changes_pixels
+MEASURED qa_fps=3.50 mode=factory
+PASS: qa_fps_measured_positive — frames=21
+VISUAL_QA_DONE failures=0 mode=factory
+ASSET_INTEGRATION_DONE failures=0

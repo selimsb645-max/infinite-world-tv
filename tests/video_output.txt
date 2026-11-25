@@ -75,18 +75,18 @@ VIDEO_CAPTURE_START
 PASS: renderer_created
 PASS: overlay_visible_in_frame
 PASS: overlay_state_live — world=Space World
-MEASURED run_a: frames=47 capture_fps=3.47 encode_fps=18.82 encode_sec=2.50 game_fps=3.7 sync=0.000 recoveries=["MISSING_FRAMES:restart_capture", "LOW_CAPTURE_FPS:restart_capture", "MISSING_FRAMES:restart_capture", "LOW_CAPTURE_FPS:restart_capture", "MISSING_FRAMES:restart_capture", "LOW_CAPTURE_FPS:restart_capture"]
+MEASURED run_a: frames=47 capture_fps=2.90 encode_fps=19.84 encode_sec=2.37 game_fps=2.7 sync=0.000 recoveries=["MISSING_FRAMES:restart_capture", "LOW_CAPTURE_FPS:restart_capture", "MISSING_FRAMES:restart_capture", "LOW_CAPTURE_FPS:restart_capture", "MISSING_FRAMES:restart_capture", "LOW_CAPTURE_FPS:restart_capture"]
 PASS: run_a_valid_segment — issues=["MISSING_FRAMES", "LOW_CAPTURE_FPS"]
 PASS: run_a_frames_captured — frames=47
-PASS: run_a_file_exists — /home/hatch/workspace/infinite-world-tv/game/../recordings/run_a/iwtv_20261125_085849_seg001.mp4
+PASS: run_a_file_exists — /home/hatch/workspace/infinite-world-tv/game/../recordings/run_a/iwtv_20261125_100847_seg001.mp4
 PASS: run_a_probe_h264_aac_720p — issues=[]
 PASS: run_a_duration_sane — dur=3.13
 PASS: run_a_av_sync — sync=0.000
-MEASURED run_b: frames=22 capture_fps=2.15 encode_sec=2.16 fallback=false
+MEASURED run_b: frames=22 capture_fps=2.06 encode_sec=2.14 fallback=false
 PASS: run_b_1080p_output — issues=[]
 PASS: run_c_multiple_segments — segments=48
 PASS: run_c_segments_all_valid
-MEASURED run_c: segments=48 total_size_mb=7.92
+MEASURED run_c: segments=48 total_size_mb=7.65
 PASS: stop_without_recording_safe
 VIDEO_CAPTURE_DONE failures=0
 VIDEO_DONE failures=0

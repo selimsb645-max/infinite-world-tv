@@ -19,6 +19,18 @@ hardware", it says so.
 
 ## Symptoms
 
+### Test runners report failures=999 / units "spawn_failed: 'godot'"
+The shell runners and the stability driver do not bundle a
+Godot path: `tests/run_*_tests.sh` use `$GODOT` (default
+`godot` from PATH) and the supervisor/stability driver uses
+`$IWT_GODOT_BIN` (default `godot`). On a machine where Godot is
+not on PATH, every suite records the 999 "did not run" sentinel
+(or the game/stream units fail to spawn) even though the code
+is fine. Fix: export both variables to the real binary first,
+e.g. `GODOT=$HOME/workspace/tools/godot/Godot_v4.3-stable_linux.x86_64`
+and `IWT_GODOT_BIN=<same path>`, then re-run. (Hit and verified
+during the Phase 05.1 regression run, 2026-11-25.)
+
 ### Dashboard shows game STOPPED / streaming NOT CONFIGURED
 
 - Streaming `NOT CONFIGURED` with no stream key in the

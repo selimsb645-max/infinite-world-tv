@@ -13,6 +13,24 @@ var score: int = 0
 var mode: String = "character"
 var near_vehicle_pad: bool = false
 
+# Phase 05.1: live asset selection for the Phase 05 factories.
+# Defaults: Pip (variant 0) and the SportsCar. Overridable via
+# environment (IWT_CHARACTER, IWT_CHARACTER_VARIANT, IWT_VEHICLE)
+# and at runtime via the controllers' set_character/set_vehicle_kind.
+# IWT_FACTORY_VISUALS=0 forces the Phase 02 primitive visuals
+# (fallback/comparison mode used by tools and the guard test).
+var character_name: String = "Pip"
+var character_variant: int = 0
+var vehicle_kind: String = "SportsCar"
+var factory_visuals_enabled: bool = true
+
+func set_factory_visuals_enabled(enabled: bool) -> void:
+	factory_visuals_enabled = enabled
+	if character != null:
+		character.set_factory_visual_enabled(enabled)
+	if vehicle != null:
+		vehicle.set_factory_visual_enabled(enabled)
+
 var input_manager: InputManager
 var environment_manager: EnvironmentManager
 var level_manager: LevelManager
@@ -89,7 +107,7 @@ func _load_generated(result: Dictionary) -> void:
 	environment_manager.apply_theme(str(level["theme"]))
 	character.reset_to(SPAWN)
 	vehicle.reset_to(Vector3(4.5, 0.15, float(level["vehicle_pad_z"])))
-	world_manager.build(level, level["theme_data"])
+	world_manager.build(level, level["theme_data"], str(level["theme"]))
 	near_vehicle_pad = false
 	_set_mode(str(level["start_mode"]))
 	_update_hud()
@@ -129,6 +147,23 @@ func _ready() -> void:
 	vehicle.input_manager = input_manager
 	add_child(vehicle)
 	character.bumped_obstacle.connect(func() -> void: audio_manager.play_bump())
+	# Phase 05.1: apply the asset selection (env overrides win over
+	# the defaults above) to the freshly built controllers.
+	var env_character := OS.get_environment("IWT_CHARACTER").strip_edges()
+	if not env_character.is_empty():
+		character_name = env_character
+	var env_variant := OS.get_environment("IWT_CHARACTER_VARIANT").strip_edges()
+	if env_variant.is_valid_int():
+		character_variant = int(env_variant)
+	var env_vehicle := OS.get_environment("IWT_VEHICLE").strip_edges()
+	if not env_vehicle.is_empty():
+		vehicle_kind = env_vehicle
+	if OS.get_environment("IWT_FACTORY_VISUALS").strip_edges() == "0":
+		factory_visuals_enabled = false
+	character.set_factory_visual_enabled(factory_visuals_enabled)
+	character.set_character(character_name, character_variant)
+	vehicle.set_factory_visual_enabled(factory_visuals_enabled)
+	vehicle.set_vehicle_kind(vehicle_kind)
 	camera_rig = CameraController.new()
 	camera_rig.name = "CameraRig"
 	camera_rig.process_mode = Node.PROCESS_MODE_PAUSABLE
@@ -182,7 +217,7 @@ func _load_level(index: int, theme_override: String) -> void:
 	# they are created and trigger phantom pickups.
 	character.reset_to(SPAWN)
 	vehicle.reset_to(Vector3(4.5, 0.15, level["vehicle_pad_z"]))
-	world_manager.build(level, environment_manager.theme_data(theme_name))
+	world_manager.build(level, environment_manager.theme_data(theme_name), theme_name)
 	near_vehicle_pad = false
 	_set_mode(level["start_mode"])
 	_update_hud()
@@ -290,6 +325,9 @@ func _on_finish_reached() -> void:
 	if state != State.PLAYING:
 		return
 	add_score(100)
+	character.celebrate()
+	world_manager.play_vfx("celebrate_burst",
+		active_controller().global_position + Vector3(0, 1.5, 0))
 	if broadcast != null:
 		broadcast.note_sfx("celebrate")
 	if endless_active and transition_manager != null:

@@ -39,6 +39,12 @@ generation or the autopilot (all three regressions pass unchanged).
   (the spec's Blender pipeline is documented as Blender-compatible
   specs, but no Blender binary exists on this VM, so no .blend files
   were produced).
+- **Update (Phase 05.1, 2026-11-25):** the factories are now wired
+  into the live game — the live character/vehicle/world are the
+  factory/library builds, driven by the real controllers, with a
+  Phase 02 primitive fallback kept for comparison. See
+  `docs/PHASE05_1.md` for the root-cause analysis and the wiring.
+  The geometry itself remains code-built primitives, as above.
 - Audio is original synthesis, not recorded music — music/ambience
   are simple pads, not composed tracks.
 - Animation is procedural posing (bob/lean/crouch), not baked

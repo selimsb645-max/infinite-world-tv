@@ -25,3 +25,4 @@ dashboard/runtime/
 
 # Python bytecode
 __pycache__/
+screenshots/

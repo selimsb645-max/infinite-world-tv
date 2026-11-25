@@ -104,14 +104,23 @@ re-run fresh in Phase 10 (2026-11-25).
   real library files (music + ambience tracks, none
   skipped); the rendered MP4's AAC track is mixed from
   this library.
-- Incomplete (documented since Phase 05, unchanged): the
-  new factories are **not wired into the live game scene** —
-  gameplay still renders the Phase 02 primitive-geometry
-  world. Audio is synthesised, animation is procedural
-  posing, and there are no Blender-authored models (no
-  Blender on this VM). Wiring the factories into the live
-  scene is future feature work, not an integration defect
-  in what Phase 05 claimed to deliver.
+- Incomplete at Phase 10 time (documented since Phase 05):
+  the new factories were **not wired into the live game
+  scene** — gameplay still rendered the Phase 02
+  primitive-geometry world. Audio is synthesised, animation
+  is procedural posing, and there are no Blender-authored
+  models (no Blender on this VM).
+- **Addendum (Phase 05.1, 2026-11-25):** that wiring gap is
+  now closed — the live scene uses the factory character,
+  vehicle, props, obstacles and collectibles, verified by a
+  new integration suite with a primitive-fallback guard test
+  and Xvfb visual QA (see `docs/PHASE05_1.md`). The geometry
+  remains code-built primitives and audio remains
+  synthesised. This addendum does **not** change the §9
+  readiness decision: the blockers there are a real-time
+  rendering host, the owner-side YouTube channel/key steps
+  and soak duration — none of which asset integration
+  affects.
 
 ### Phase 06 — Automated Video Production & Rendering — COMPLETE (pipeline); real-time rates hardware-limited
 - Features: `GameCaptureManager`, `VideoRenderer`,

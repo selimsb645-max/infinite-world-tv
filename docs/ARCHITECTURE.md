@@ -106,6 +106,26 @@ plus the final documentation set (`docs/PHASE10.md`,
 `docs/DEPLOYMENT.md`, `docs/SECURITY.md`,
 `docs/TROUBLESHOOTING.md`).
 
+## Phase 05.1 (asset integration)
+
+No new modules — the Phase 05 library modules are now consumed
+by the live scene. `CharacterController`/`VehicleController`
+build their visuals from `CharacterFactory`/`VehicleFactory`
+(Phase 02 primitive builders retained as a fallback, toggled by
+`IWT_FACTORY_VISUALS=0` or `GameManager.set_factory_visuals_enabled`)
+and drive `CharacterAnimation`/`VehicleAnimation` from real
+physics state. `WorldManager` takes the world name in `build()`
+and sources decor from `EnvironmentAssetLibrary` (non-solid
+kinds only), obstacles/collectibles from
+`ObstacleCollectibleLibrary` (with collision-alignment fix-ups),
+colours from `MaterialLibrary.palette()`, and one-shot VFX from
+`MaterialLibrary.build_vfx()`. Selection is configured in
+`GameManager` (`IWT_CHARACTER`, `IWT_CHARACTER_VARIANT`,
+`IWT_VEHICLE`). Verified by
+`game/tests/AssetIntegrationTest.tscn` (logic + fallback guard)
+and `game/tests/VisualQaTest.tscn` (Xvfb pixels) via
+`tests/run_asset_integration_tests.sh`; see `docs/PHASE05_1.md`.
+
 ## Design constraints honoured
 
 - Lightweight low-poly primitives only — the future runtime target is a

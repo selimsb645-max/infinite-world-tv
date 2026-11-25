@@ -81,6 +81,29 @@ built in code; there are no external or paid assets.
   `docs/PHASE08.md`). No fake metrics: with nothing running the
   dashboard honestly reads game STOPPED, streaming
   NOT CONFIGURED (no stream key exists yet).
+- **Phase 09 — Reliability, Fault Recovery & Long-Run
+  Stability:** built and tested locally. Process supervisor
+  with bounded backoff restarts and crash-log snapshots,
+  log rotation, bounded stream logging, windowed recovery
+  budgets, storage partial reclamation, AI perception
+  guards. Reliability suite 51/51 passing and a real 600 s
+  stability run with 2/2 injected process kills recovered
+  (see `docs/PHASE09.md`, `tests/TESTING_REPORT_PHASE09.md`).
+- **Phase 10 — Final Integration & Deployment Readiness:**
+  complete. New end-to-end integration suite (38/38) proves
+  the whole chain in both the in-engine topology and the
+  supervised production topology, including dashboard-driven
+  autonomous play and supervisor recovery from an injected
+  SIGKILL. All ten suites re-run fresh: **606 checks,
+  0 failures**, plus the 600 s stability run. Final report
+  with the deployment readiness decision in
+  `docs/PHASE10.md`; deployment in `docs/DEPLOYMENT.md`,
+  security in `docs/SECURITY.md`, troubleshooting in
+  `docs/TROUBLESHOOTING.md`. Readiness: READY FOR LOCAL
+  TESTING; READY FOR PRIVATE/UNLISTED STREAM TESTING
+  pending the owner's channel + stream key; NOT READY FOR
+  CONTROLLED DEPLOYMENT on current hardware (≈4 fps render)
+  and NOT READY FOR PUBLIC BROADCAST.
 - **Not yet built (later phases, need owner approval):** the
   GitHub Actions session runtime itself, and the first real
   (private) YouTube test stream, which needs the owner's own

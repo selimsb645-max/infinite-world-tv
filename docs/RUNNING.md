@@ -191,3 +191,23 @@ GODOT=godot bash tests/run_reliability_tests.sh
 IWT_STABILITY_SEC=600 python3 tests/stability_run.py
 # Expected: STABILITY_DONE failures=0 after a real 600 s run
 ```
+
+## End-to-end integration & final verification (Phase 10)
+
+The Phase 10 integration suite exercises the complete chain
+in both topologies — in-engine (Xvfb) and the supervised
+production stack with the dashboard — including a dashboard
+`start_ai` round-trip and an injected SIGKILL recovered by
+the supervisor:
+
+```bash
+GODOT=godot bash tests/run_integration_tests.sh
+# Expected: INTEGRATION_DONE failures=0 (38 checks)
+# A FAKE stream key + dead local ingest are used; nothing
+# leaves the machine and no YouTube endpoint is contacted.
+```
+
+Final documentation set: `docs/PHASE10.md` (final report +
+readiness decision), `docs/DEPLOYMENT.md` (architecture +
+controlled deployment checklist), `docs/SECURITY.md`,
+`docs/TROUBLESHOOTING.md`.

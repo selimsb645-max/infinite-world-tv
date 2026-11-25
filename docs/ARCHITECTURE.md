@@ -69,6 +69,43 @@ dashboard snapshot; `StreamAdmin` is the token-authorized control
 surface (public start additionally needs an explicit confirmation
 flag, default off).
 
+## Phase 08 components (dashboard, `dashboard/` + `game/dashboard/`)
+
+Full design in `docs/PHASE08.md`. A Python-stdlib backend
+(`dashboard/server.py`) serves a static frontend and a JSON
+API: token→session auth with admin/viewer roles, rate
+limiting and an audit log; a status service aggregating
+`/proc`, process liveness, recordings and two Godot bridge
+snapshots; a process-control service over pidfiles; a log
+service with redaction; an alert service. The bridges are
+additive scenes — `GameService.tscn` (Main + status/command
+bridge into GameManager / AutonomousController /
+VideoRenderer) and `StreamService.tscn` (persistent owner
+of the Phase 07 StreamManager/Admin pair). No Phase 02–07
+file was modified for the dashboard.
+
+## Phase 09 components (reliability, `dashboard/`)
+
+Full design in `docs/PHASE09.md`. `dashboard/supervisor.py`
+supervises the game, stream and dashboard processes
+(zombie-aware liveness, shared pidfiles, crash-log
+snapshots, exponential-backoff restarts with a bounded
+window budget, per-unit independence) and
+`dashboard/logrotate.py` bounds every dashboard-owned log.
+In-engine hardening: windowed recovery budgets, bounded
+append-only stream log, storage partial reclamation, AI
+null-perception guards.
+
+## Phase 10 (integration & deployment readiness)
+
+No new runtime modules. Phase 10 added the end-to-end
+integration suite (`game/tests/IntegrationTest.tscn`,
+`tests/integration_test.py`, `tests/run_integration_tests.sh`)
+that composes the phases above into one verified chain,
+plus the final documentation set (`docs/PHASE10.md`,
+`docs/DEPLOYMENT.md`, `docs/SECURITY.md`,
+`docs/TROUBLESHOOTING.md`).
+
 ## Design constraints honoured
 
 - Lightweight low-poly primitives only — the future runtime target is a

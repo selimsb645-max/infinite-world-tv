@@ -29,13 +29,13 @@ RELIABILITY_PY_START
 PASS: logrotate_bounds_total_size — total=11918 files=['grow.jsonl', 'grow.jsonl.1', 'grow.jsonl.2']
 PASS: logrotate_keeps_backups_bounded — files=3
 PASS: logrotate_current_file_intact
-PASS: sup_start_ok — pid=3891
+PASS: sup_start_ok — pid=24705
 PASS: sup_duplicate_start_refused
 PASS: sup_detects_killed_unit
 PASS: sup_enters_backoff_not_instant_restart — state=BACKOFF
 PASS: sup_crash_snapshot_preserved
 PASS: sup_backoff_respected
-PASS: sup_restarted_after_backoff — new_pid=3892
+PASS: sup_restarted_after_backoff — new_pid=24706
 PASS: sup_restart_counted
 PASS: sup_graceful_stop
 PASS: sup_intentional_stop_not_restarted

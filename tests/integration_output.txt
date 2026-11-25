@@ -1,0 +1,48 @@
+INTEGRATION_CHAIN_START
+PASS: game_boots_to_menu — state=0
+PASS: phase05_asset_registry_valid — problems=0
+PASS: autonomous_starts_endless
+PASS: generated_level_present — seed=2125963908 meta=2125963908
+PASS: generated_level_revalidates — errors=[]
+PASS: phase05_audio_plan_uses_library — world=Snow Mountain tracks=2 skipped=[]
+MEASURED gameplay: modes character=true vehicle=true switches=1 decisions=136 levels_completed=0 travelled=81.0
+PASS: gameplay_character_mode
+PASS: gameplay_vehicle_mode
+PASS: gameplay_mode_switches — switches=1
+PASS: gameplay_ai_decisions — decisions=136
+PASS: gameplay_progress — travelled=81.0 levels=0
+PASS: renderer_created
+MEASURED render: frames=45 capture_fps=4.18 encode_fps=17.53 game_fps=4.0 sync=0.000
+PASS: render_segment_valid — issues=["MISSING_FRAMES", "LOW_CAPTURE_FPS"]
+PASS: render_frames_captured — frames=45
+PASS: render_file_exists — /home/hatch/workspace/infinite-world-tv/game/../recordings/run_e2e/iwtv_20261125_091008_seg001.mp4
+PASS: render_probe_h264_aac — issues=[]
+PASS: render_av_sync — sync=0.000
+MEASURED capture_health: { "healthy": true, "issues": [] }
+PASS: capture_health_evaluates
+PASS: stream_config_from_env — ingest=rtmp://127.0.0.1:19359/live/***
+PASS: stream_prepare_ok — errors=[]
+PASS: stream_prepared_no_process — state=prepared pid=-1
+PASS: stream_health_snapshot — state=prepared
+PASS: public_start_refused_without_confirmation — result={ "ok": false, "error": "public_confirmation_required" }
+INTEGRATION_CHAIN_DONE failures=0
+PASS: supervisor_starts_all_units
+PASS: supervisor_tracks_units_running
+PASS: dashboard_http_reachable
+PASS: dashboard_status_requires_auth
+PASS: dashboard_admin_login
+PASS: dashboard_status_ok
+PASS: dashboard_system_metrics_real
+PASS: dashboard_stream_not_configured
+PASS: dashboard_start_ai_command
+PASS: bridge_reports_generated_level_and_ai
+MEASURED bridge: state=PLAYING mode=character seed=178605489 world=Space World fps=1
+PASS: dashboard_reflects_playing_game
+PASS: dashboard_reflects_ai_running
+MEASURED injected SIGKILL unit=game pid=27746
+PASS: supervisor_recovers_killed_game
+MEASURED recovered unit=game new_pid=27781 restarts=1
+PASS: dashboard_survives_game_fault
+PASS: bridge_resumes_after_recovery
+INTEGRATION_SYSTEM_DONE failures=0
+INTEGRATION_DONE failures=0
